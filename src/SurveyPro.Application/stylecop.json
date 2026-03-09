@@ -1,0 +1,42 @@
+{
+  "settings": {
+    "documentationRules": {
+      "companyName": "MyCompany",
+      "documentExposedElements": true,
+      "documentInterfaces": true,
+      "documentInternalElements": false,
+      "documentPrivateElements": false,
+      "documentPrivateFields": false
+    },
+    "orderingRules": {
+      "elementOrder": [
+        "kind",
+        "accessibility",
+        "constant",
+        "field",
+        "constructor",
+        "property",
+        "method",
+        "event",
+        "delegate",
+        "enum",
+        "interface",
+        "class",
+        "struct"
+      ],
+      "usingDirectivesPlacement": "outsideNamespace",
+      "systemUsingDirectivesFirst": true
+    },
+    "namingRules": {
+      "allowCommonHungarianPrefixes": false,
+      "allowCommonBooleanPrefixes": true
+    },
+    "layoutRules": {
+      "newlineAtEndOfFile": "require",
+      "allowConsecutiveUsings": true
+    },
+    "maintainabilityRules": {
+      "maxLineLength": 220
+    }
+  }
+}
