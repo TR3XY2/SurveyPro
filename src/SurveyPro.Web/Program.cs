@@ -10,13 +10,16 @@ using Serilog;
 using SurveyPro.Domain.Entities;
 using SurveyPro.Infrastructure.Identity;
 using SurveyPro.Infrastructure.Persistence;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-public static class Program
+public class Program
 {
     private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Configuration.AddUserSecrets<Program>();
 
         // ������������ Serilog
         Log.Logger = new LoggerConfiguration()
