@@ -32,9 +32,9 @@
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <span class="nav-link text-dark">
-                                    Hello @User.Identity.Name
-                                </span>
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">
+                                    Hello @User.FindFirst("FullName")?.Value
+                                </a>
                             </li>
 
                             <li class="nav-item">

@@ -1,0 +1,12 @@
+@{ ViewData["Title"] = "Delete Account"; }
+
+<h2>Delete Account</h2>
+
+<div class="alert alert-danger">
+    <strong>Warning!</strong> This action is permanent and cannot be undone.
+</div>
+
+<form asp-action="DeleteAccount" method="post">
+    <button type="submit" class="btn btn-danger">Yes, delete my account</button>
+    <a asp-action="Profile" class="btn btn-secondary ms-2">Cancel</a>
+</form>

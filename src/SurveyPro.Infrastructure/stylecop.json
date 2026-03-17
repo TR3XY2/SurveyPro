@@ -6,7 +6,18 @@
       "documentInterfaces": true,
       "documentInternalElements": false,
       "documentPrivateElements": false,
-      "documentPrivateFields": false
+      "documentPrivateFields": false,
+      "elementTypes": {
+        "class": true,
+        "struct": false,
+        "enum": false,
+        "interface": false,
+        "delegate": false,
+        "property": false,
+        "method": false,
+        "constructor": false,
+        "event": false
+      }
     },
     "orderingRules": {
       "elementOrder": [
