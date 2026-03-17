@@ -218,6 +218,14 @@ public class AccountController : Controller
         return View(model);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LogoutConfirmed()
+    {
+        await this.signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
+    }
+
     /// <summary>
     /// Shows the current user's profile.
     /// </summary>
