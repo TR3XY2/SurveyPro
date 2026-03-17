@@ -62,4 +62,33 @@ public class AccountController : Controller
 
         return View(model);
     }
+
+    public IActionResult Login()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Login(LoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await this.signInManager.PasswordSignInAsync(
+            model.Email,
+            model.Password,
+            model.RememberMe,
+            false);
+
+        if (result.Succeeded)
+        {
+            this.logger.LogInformation("User logged in {Email}", model.Email);
+            return RedirectToAction("Index", "Home");
+        }
+
+        ModelState.AddModelError(string.Empty, "Invalid login attempt");
+        return View(model);
+    }
 }
