@@ -19,9 +19,4 @@ public class ProfileViewModel
     /// Gets or sets the user's email address.
     /// </summary>
     public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the list of roles assigned to the user.
-    /// </summary>
-    public IList<string> Roles { get; set; } = new List<string>();
 }
