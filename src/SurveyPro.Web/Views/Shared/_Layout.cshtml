@@ -32,9 +32,17 @@
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">
+                                <span class="nav-link text-dark">
                                     Hello @User.FindFirst("FullName")?.Value
-                                </a>
+                                </span>
+                            </li>
+
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Profile" method="post">
+                                    <button type="submit" class="nav-link btn btn-link text-dark">
+                                        Profile
+                                    </button>
+                                </form>
                             </li>
 
                             <li class="nav-item">

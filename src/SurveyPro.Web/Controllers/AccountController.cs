@@ -87,6 +87,141 @@ public class AccountController : Controller
     /// Shows the current user's profile.
     /// </summary>
     /// <returns>The profile view.</returns>
+    [Authorize]
+    public async Task<IActionResult> Profile()
+    {
+        var user = await this.userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        var roles = await this.userManager.GetRolesAsync(user);
+
+        var model = new ProfileViewModel
+        {
+            Name = user.Name,
+            Email = user.Email ?? string.Empty,
+            Roles = roles,
+        };
+
+        return View(model);
+    }
+
+    /// <summary>
+    /// Shows the profile edit page.
+    /// </summary>
+    /// <returns>The edit profile view.</returns>
+    [Authorize]
+    public async Task<IActionResult> EditProfile()
+    {
+        var user = await this.userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        var model = new EditProfileViewModel
+        {
+            Name = user.Name,
+            Email = user.Email ?? string.Empty,
+        };
+
+        return View(model);
+    }
+
+    /// <summary>
+    /// Handles profile editing.
+    /// </summary>
+    /// <param name="model">The edit profile model.</param>
+    /// <returns>Redirects on success, or returns the view with errors.</returns>
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> EditProfile(EditProfileViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await this.userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        user.Name = model.Name;
+        user.Email = model.Email;
+        user.UserName = model.Email;
+
+        var result = await this.userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            await this.signInManager.RefreshSignInAsync(user);
+            this.logger.LogInformation("User {Email} updated profile", user.Email);
+            TempData["SuccessMessage"] = "Profile updated successfully.";
+            return RedirectToAction(nameof(EditProfile));
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+    /// <summary>
+    /// Shows the change password page.
+    /// </summary>
+    /// <returns>The change password view.</returns>
+    [Authorize]
+    public IActionResult ChangePassword() => View();
+
+    /// <summary>
+    /// Handles the change password request.
+    /// </summary>
+    /// <param name="model">The change password model.</param>
+    /// <returns>Redirects on success, or returns the view with errors.</returns>
+    [HttpPost]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await this.userManager.GetUserAsync(User);
+        if (user is null)
+        {
+            return RedirectToAction("Login");
+        }
+
+        var result = await this.userManager.ChangePasswordAsync(
+            user, model.CurrentPassword, model.NewPassword);
+
+        if (result.Succeeded)
+        {
+            await this.signInManager.RefreshSignInAsync(user);
+            this.logger.LogInformation("User {Email} changed password", user.Email);
+            TempData["SuccessMessage"] = "Password changed successfully.";
+            return RedirectToAction(nameof(ChangePassword));
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
+        }
+
+        return View(model);
+    }
+
+    /// <summary>
+    /// Shows the current user's profile.
+    /// </summary>
+    /// <returns>The profile view.</returns>
     public IActionResult Login()
     {
         return View();
@@ -217,49 +352,6 @@ public class AccountController : Controller
 
         return View(model);
     }
-
-    /// <summary>
-    /// Shows the change password page.
-    /// </summary>
-    /// <returns>The change password view.</returns>
-    [Authorize]
-    public IActionResult ChangePassword() => View();
-
-    /// <summary>
-    /// Handles the change password request.
-    /// </summary>
-    /// <param name="model">The change password model.</param>
-    /// <returns>Redirects on success, or returns the view with errors.</returns>
-    [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var user = await this.userManager.GetUserAsync(User);
-        if (user is null)
-        {
-            return RedirectToAction("Login");
-        }
-
-        var result = await this.userManager.ChangePasswordAsync(
-            user, model.CurrentPassword, model.NewPassword);
-
-        if (result.Succeeded)
-        {
-            await this.signInManager.RefreshSignInAsync(user);
-            this.logger.LogInformation("User {Email} changed password", user.Email);
-            TempData["SuccessMessage"] = "Password changed successfully.";
-            return RedirectToAction(nameof(ChangePassword));
-        }
-
-        foreach (var error in result.Errors)
-        {
-            ModelState.AddModelError(string.Empty, error.Description);
-        }
 
         return View(model);
     }

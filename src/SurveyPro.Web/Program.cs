@@ -10,7 +10,6 @@ using Serilog;
 using SurveyPro.Domain.Entities;
 using SurveyPro.Infrastructure.Identity;
 using SurveyPro.Infrastructure.Persistence;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -46,7 +45,8 @@ public class Program
         builder.Services
             .AddIdentity<ApplicationUser, IdentityRole<Guid>>()
             .AddEntityFrameworkStores<SurveyProDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>();
 
         builder.Services.ConfigureApplicationCookie(options =>
         {
