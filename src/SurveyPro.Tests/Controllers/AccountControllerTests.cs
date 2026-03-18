@@ -4,7 +4,6 @@
 
 namespace SurveyPro.Tests.Controllers;
 
-using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -19,9 +18,9 @@ using SurveyPro.Web.ViewModels;
 using Xunit;
 
 using IdentitySignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+
 /// <summary>
-/// Unit tests for the real AccountController using mocked Identity services.
-/// These tests exercise actual production code so SonarQube reports real coverage.
+/// Unit tests for <see cref="AccountController"/> using mocked Identity services.
 /// </summary>
 public class AccountControllerTests
 {
@@ -62,26 +61,36 @@ public class AccountControllerTests
     [Fact]
     public void Register_Get_ReturnsView()
     {
+        // Arrange
         var controller = BuildController(BuildUserManager(), BuildSignInManager(BuildUserManager()));
-        controller.Register().Should().BeOfType<ViewResult>();
+
+        // Act
+        var result = controller.Register();
+
+        // Assert
+        result.Should().BeOfType<ViewResult>();
     }
 
     [Fact]
     public async Task Register_Post_InvalidModel_ReturnsViewWithModel()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var controller = BuildController(userMgr, BuildSignInManager(userMgr));
         controller.ModelState.AddModelError("Email", "Required");
-
         var model = new RegisterViewModel();
+
+        // Act
         var result = await controller.Register(model);
 
+        // Assert
         result.Should().BeOfType<ViewResult>().Which.Model.Should().Be(model);
     }
 
     [Fact]
     public async Task Register_Post_Success_Redirects()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
 
@@ -93,11 +102,15 @@ public class AccountControllerTests
             .Returns(Task.CompletedTask);
 
         var controller = BuildController(userMgr, signMgr);
-        var result = await controller.Register(new RegisterViewModel
+        var model = new RegisterViewModel
         {
             Name = "Alice", Email = "alice@example.com", Password = "Password123!",
-        });
+        };
 
+        // Act
+        var result = await controller.Register(model);
+
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>()
             .Which.ActionName.Should().Be("Index");
     }
@@ -105,16 +118,21 @@ public class AccountControllerTests
     [Fact]
     public async Task Register_Post_IdentityError_ReturnsViewWithErrors()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         userMgr.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Email taken" }));
 
         var controller = BuildController(userMgr, BuildSignInManager(userMgr));
-        var result = await controller.Register(new RegisterViewModel
+        var model = new RegisterViewModel
         {
             Name = "Bob", Email = "bob@example.com", Password = "Pass1!",
-        });
+        };
 
+        // Act
+        var result = await controller.Register(model);
+
+        // Assert
         result.Should().BeOfType<ViewResult>();
         controller.ModelState.IsValid.Should().BeFalse();
     }
@@ -122,31 +140,46 @@ public class AccountControllerTests
     [Fact]
     public void Login_Get_ReturnsView()
     {
+        // Arrange
         var userMgr = BuildUserManager();
-        BuildController(userMgr, BuildSignInManager(userMgr)).Login()
-            .Should().BeOfType<ViewResult>();
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
+        var result = controller.Login();
+
+        // Assert
+        result.Should().BeOfType<ViewResult>();
     }
 
     [Fact]
     public async Task Login_Post_InvalidModel_ReturnsView()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var controller = BuildController(userMgr, BuildSignInManager(userMgr));
         controller.ModelState.AddModelError("Email", "Required");
 
+        // Act
         var result = await controller.Login(new LoginViewModel());
+
+        // Assert
         result.Should().BeOfType<ViewResult>();
     }
 
     [Fact]
     public async Task Login_Post_UserNotFound_ReturnsViewWithError()
     {
+        // Arrange
         var userMgr = BuildUserManager();
-        userMgr.Setup(x => x.FindByEmailAsync("x@x.com")).ReturnsAsync((ApplicationUser?)null);
+        userMgr.Setup(x => x.FindByEmailAsync("x@x.com"))
+            .ReturnsAsync((ApplicationUser?)null);
 
         var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
         var result = await controller.Login(new LoginViewModel { Email = "x@x.com", Password = "p" });
 
+        // Assert
         result.Should().BeOfType<ViewResult>();
         controller.ModelState.IsValid.Should().BeFalse();
     }
@@ -154,16 +187,21 @@ public class AccountControllerTests
     [Fact]
     public async Task Login_Post_WrongPassword_ReturnsViewWithError()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         var user = new ApplicationUser { UserName = "alice", Email = "alice@example.com" };
+
         userMgr.Setup(x => x.FindByEmailAsync("alice@example.com")).ReturnsAsync(user);
         signMgr.Setup(x => x.PasswordSignInAsync("alice", "bad", false, false))
             .ReturnsAsync(IdentitySignInResult.Failed);
 
         var controller = BuildController(userMgr, signMgr);
+
+        // Act
         var result = await controller.Login(new LoginViewModel { Email = "alice@example.com", Password = "bad" });
 
+        // Assert
         result.Should().BeOfType<ViewResult>();
         controller.ModelState.IsValid.Should().BeFalse();
     }
@@ -171,79 +209,154 @@ public class AccountControllerTests
     [Fact]
     public async Task Login_Post_Success_Redirects()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         var user = new ApplicationUser { UserName = "alice", Email = "alice@example.com" };
+
         userMgr.Setup(x => x.FindByEmailAsync("alice@example.com")).ReturnsAsync(user);
         signMgr.Setup(x => x.PasswordSignInAsync("alice", "Pass1!", false, false))
             .ReturnsAsync(IdentitySignInResult.Success);
 
         var controller = BuildController(userMgr, signMgr);
+
+        // Act
         var result = await controller.Login(new LoginViewModel { Email = "alice@example.com", Password = "Pass1!" });
 
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Index");
     }
 
     [Fact]
     public async Task LogoutConfirmed_SignsOutAndRedirects()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         signMgr.Setup(x => x.SignOutAsync()).Returns(Task.CompletedTask);
 
-        var result = await BuildController(userMgr, signMgr).LogoutConfirmed();
+        var controller = BuildController(userMgr, signMgr);
 
+        // Act
+        var result = await controller.LogoutConfirmed();
+
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Index");
+    }
+
+    [Fact]
+    public async Task Profile_Get_UserFound_ReturnsViewWithPopulatedModel()
+    {
+        // Arrange
+        var userMgr = BuildUserManager();
+        var user = new ApplicationUser { Name = "Alice", Email = "alice@example.com" };
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
+
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
+        var result = await controller.Profile();
+
+        // Assert
+        var view = result.Should().BeOfType<ViewResult>().Subject;
+        var model = view.Model.Should().BeOfType<ProfileViewModel>().Subject;
+        model.Name.Should().Be("Alice");
+        model.Email.Should().Be("alice@example.com");
+    }
+
+    [Fact]
+    public async Task Profile_Get_UserNotFound_RedirectsToLogin()
+    {
+        // Arrange
+        var userMgr = BuildUserManager();
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
+        var result = await controller.Profile();
+
+        // Assert
+        result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Login");
     }
 
     [Fact]
     public void ChangePassword_Get_ReturnsView()
     {
+        // Arrange
         var userMgr = BuildUserManager();
-        BuildController(userMgr, BuildSignInManager(userMgr)).ChangePassword()
-            .Should().BeOfType<ViewResult>();
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
+        var result = controller.ChangePassword();
+
+        // Assert
+        result.Should().BeOfType<ViewResult>();
     }
 
     [Fact]
     public async Task ChangePassword_InvalidModel_ReturnsView()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var controller = BuildController(userMgr, BuildSignInManager(userMgr));
         controller.ModelState.AddModelError("k", "v");
 
+        // Act
         var result = await controller.ChangePassword(new ChangePasswordViewModel());
+
+        // Assert
         result.Should().BeOfType<ViewResult>();
     }
 
     [Fact]
     public async Task ChangePassword_UserNotFound_RedirectsToLogin()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
             .ReturnsAsync((ApplicationUser?)null);
 
-        var result = await BuildController(userMgr, BuildSignInManager(userMgr))
-            .ChangePassword(new ChangePasswordViewModel { CurrentPassword = "a", NewPassword = "b", ConfirmNewPassword = "b" });
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+        var model = new ChangePasswordViewModel
+        {
+            CurrentPassword = "a", NewPassword = "b", ConfirmNewPassword = "b",
+        };
 
+        // Act
+        var result = await controller.ChangePassword(model);
+
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Login");
     }
 
     [Fact]
     public async Task ChangePassword_Success_SetsTempDataAndRedirects()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         var user = new ApplicationUser { Email = "u@u.com" };
-        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).ReturnsAsync(user);
-        userMgr.Setup(x => x.ChangePasswordAsync(user, "Old1!", "New1!")).ReturnsAsync(IdentityResult.Success);
-        signMgr.Setup(x => x.RefreshSignInAsync(user)).Returns(Task.CompletedTask);
+
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
+        userMgr.Setup(x => x.ChangePasswordAsync(user, "Old1!", "New1!"))
+            .ReturnsAsync(IdentityResult.Success);
+        signMgr.Setup(x => x.RefreshSignInAsync(user))
+            .Returns(Task.CompletedTask);
 
         var controller = BuildController(userMgr, signMgr);
-        var result = await controller.ChangePassword(new ChangePasswordViewModel
+        var model = new ChangePasswordViewModel
         {
             CurrentPassword = "Old1!", NewPassword = "New1!", ConfirmNewPassword = "New1!",
-        });
+        };
 
+        // Act
+        var result = await controller.ChangePassword(model);
+
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("ChangePassword");
         controller.TempData["SuccessMessage"].Should().Be("Password changed successfully.");
     }
@@ -251,60 +364,121 @@ public class AccountControllerTests
     [Fact]
     public async Task ChangePassword_Failure_AddsErrorAndReturnsView()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         var user = new ApplicationUser { Email = "u@u.com" };
-        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).ReturnsAsync(user);
+
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
         userMgr.Setup(x => x.ChangePasswordAsync(user, "Bad!", "New1!"))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Wrong" }));
 
         var controller = BuildController(userMgr, signMgr);
-        var result = await controller.ChangePassword(new ChangePasswordViewModel
+        var model = new ChangePasswordViewModel
         {
             CurrentPassword = "Bad!", NewPassword = "New1!", ConfirmNewPassword = "New1!",
-        });
+        };
 
+        // Act
+        var result = await controller.ChangePassword(model);
+
+        // Assert
         result.Should().BeOfType<ViewResult>();
         controller.ModelState.IsValid.Should().BeFalse();
     }
 
     [Fact]
-    public async Task EditProfile_InvalidModel_ReturnsView()
+    public async Task EditProfile_Get_UserFound_ReturnsViewWithCurrentData()
     {
+        // Arrange
         var userMgr = BuildUserManager();
-        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
-        controller.ModelState.AddModelError("k", "v");
+        var user = new ApplicationUser { Name = "Bob", Email = "bob@example.com" };
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
 
-        var result = await controller.EditProfile(new EditProfileViewModel());
-        result.Should().BeOfType<ViewResult>();
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
+        var result = await controller.EditProfile();
+
+        // Assert
+        var view = result.Should().BeOfType<ViewResult>().Subject;
+        var model = view.Model.Should().BeOfType<EditProfileViewModel>().Subject;
+        model.Name.Should().Be("Bob");
+        model.Email.Should().Be("bob@example.com");
     }
 
     [Fact]
-    public async Task EditProfile_UserNotFound_RedirectsToLogin()
+    public async Task EditProfile_Get_UserNotFound_RedirectsToLogin()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
             .ReturnsAsync((ApplicationUser?)null);
 
-        var result = await BuildController(userMgr, BuildSignInManager(userMgr))
-            .EditProfile(new EditProfileViewModel { Name = "n", Email = "e@e.com" });
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
 
+        // Act
+        var result = await controller.EditProfile();
+
+        // Assert
+        result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Login");
+    }
+
+    [Fact]
+    public async Task EditProfile_InvalidModel_ReturnsView()
+    {
+        // Arrange
+        var userMgr = BuildUserManager();
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+        controller.ModelState.AddModelError("k", "v");
+
+        // Act
+        var result = await controller.EditProfile(new EditProfileViewModel());
+
+        // Assert
+        result.Should().BeOfType<ViewResult>();
+    }
+
+    [Fact]
+    public async Task EditProfile_Post_UserNotFound_RedirectsToLogin()
+    {
+        // Arrange
+        var userMgr = BuildUserManager();
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var controller = BuildController(userMgr, BuildSignInManager(userMgr));
+
+        // Act
+        var result = await controller.EditProfile(new EditProfileViewModel { Name = "n", Email = "e@e.com" });
+
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("Login");
     }
 
     [Fact]
     public async Task EditProfile_Success_SetsTempDataAndRedirects()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         var user = new ApplicationUser { Email = "u@u.com", Name = "Old" };
-        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).ReturnsAsync(user);
-        userMgr.Setup(x => x.UpdateAsync(user)).ReturnsAsync(IdentityResult.Success);
-        signMgr.Setup(x => x.RefreshSignInAsync(user)).Returns(Task.CompletedTask);
+
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
+        userMgr.Setup(x => x.UpdateAsync(user))
+            .ReturnsAsync(IdentityResult.Success);
+        signMgr.Setup(x => x.RefreshSignInAsync(user))
+            .Returns(Task.CompletedTask);
 
         var controller = BuildController(userMgr, signMgr);
+
+        // Act
         var result = await controller.EditProfile(new EditProfileViewModel { Name = "New", Email = "new@e.com" });
 
+        // Assert
         result.Should().BeOfType<RedirectToActionResult>().Which.ActionName.Should().Be("EditProfile");
         controller.TempData["SuccessMessage"].Should().Be("Profile updated successfully.");
     }
@@ -312,16 +486,22 @@ public class AccountControllerTests
     [Fact]
     public async Task EditProfile_Failure_AddsErrorAndReturnsView()
     {
+        // Arrange
         var userMgr = BuildUserManager();
         var signMgr = BuildSignInManager(userMgr);
         var user = new ApplicationUser { Email = "u@u.com", Name = "Old" };
-        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>())).ReturnsAsync(user);
+
+        userMgr.Setup(x => x.GetUserAsync(It.IsAny<System.Security.Claims.ClaimsPrincipal>()))
+            .ReturnsAsync(user);
         userMgr.Setup(x => x.UpdateAsync(user))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Fail" }));
 
         var controller = BuildController(userMgr, signMgr);
+
+        // Act
         var result = await controller.EditProfile(new EditProfileViewModel { Name = "New", Email = "new@e.com" });
 
+        // Assert
         result.Should().BeOfType<ViewResult>();
         controller.ModelState.IsValid.Should().BeFalse();
     }
