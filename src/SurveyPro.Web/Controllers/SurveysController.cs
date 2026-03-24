@@ -138,4 +138,32 @@ public class SurveysController : Controller
         TempData["SuccessMessage"] = "Опитування опубліковано.";
         return this.RedirectToAction(nameof(this.My));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var authorIdResult = this.GetCurrentUserId();
+
+        if (authorIdResult.IsFailure)
+        {
+            return this.RedirectToAction("Login", "Account");
+        }
+
+        var result = await this.surveyService.DeleteAsync(
+            id,
+            authorIdResult.Value,
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            TempData["ErrorMessage"] = result.Error;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "Опитування видалено.";
+        }
+
+        return this.RedirectToAction(nameof(this.My));
+    }
 }

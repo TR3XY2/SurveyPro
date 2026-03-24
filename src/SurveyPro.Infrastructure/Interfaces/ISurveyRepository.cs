@@ -20,4 +20,6 @@ public interface ISurveyRepository
     Task<Survey?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task UpdateAsync(Survey survey, CancellationToken cancellationToken);
+
+    Task DeleteAsync(Guid surveyId, CancellationToken cancellationToken);
 }

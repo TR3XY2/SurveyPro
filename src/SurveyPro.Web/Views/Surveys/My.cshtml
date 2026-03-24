@@ -47,19 +47,31 @@ else
                     <td>@survey.CreatedAt.ToLocalTime().ToString("g")</td>
 
                     <td>
-                        @if (survey.Status != SurveyStatuses.Published)
-                        {
-                            <form asp-action="Publish" method="post" style="display:inline;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                    
+                            @if (survey.Status != SurveyStatuses.Published)
+                            {
+                                <form asp-action="Publish" method="post" style="display:inline;">
+                                    <input type="hidden" name="id" value="@survey.Id" />
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        Опублікувати
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-success">Опубліковано</span>
+                            }
+                    
+                            <!-- 🔥 DELETE -->
+                            <form asp-action="Delete" method="post" style="display:inline;">
                                 <input type="hidden" name="id" value="@survey.Id" />
-                                <button type="submit" class="btn btn-success btn-sm">
-                                    Опублікувати
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    Видалити
                                 </button>
                             </form>
-                        }
-                        else
-                        {
-                            <span class="text-success">Опубліковано</span>
-                        }
+                    
+                        </div>
                     </td>
                 </tr>
             }

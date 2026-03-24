@@ -121,4 +121,24 @@ public sealed class SurveyService : ISurveyService
         await this.surveyRepository.UpdateAsync(survey, cancellationToken);
         return Result.Success();
     }
+
+    public async Task<Result> DeleteAsync(
+    Guid surveyId,
+    Guid authorId,
+    CancellationToken cancellationToken)
+    {
+        var surveys = await this.surveyRepository.GetByAuthorIdAsync(authorId, cancellationToken);
+        var survey = surveys.FirstOrDefault(s => s.Id == surveyId);
+
+        if (survey == null)
+        {
+            return Result.Failure("Survey not found");
+        }
+
+        await this.surveyRepository.DeleteAsync(surveyId, cancellationToken);
+
+        this.logger.LogInformation("Survey {SurveyId} deleted", surveyId);
+
+        return Result.Success();
+    }
 }

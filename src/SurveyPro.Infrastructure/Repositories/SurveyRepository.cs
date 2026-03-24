@@ -64,4 +64,16 @@ public sealed class SurveyRepository : ISurveyRepository
         this.dbContext.Surveys.Update(survey);
         await this.dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task DeleteAsync(Guid surveyId, CancellationToken cancellationToken)
+{
+    var survey = await this.dbContext.Surveys
+        .FirstOrDefaultAsync(s => s.Id == surveyId, cancellationToken);
+
+    if (survey != null)
+    {
+        this.dbContext.Surveys.Remove(survey);
+        await this.dbContext.SaveChangesAsync(cancellationToken);
+    }
+}
 }
