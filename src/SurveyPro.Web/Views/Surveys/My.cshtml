@@ -3,12 +3,12 @@
 @model IReadOnlyCollection<SurveyListItemDto>
 
 @{
-    ViewData["Title"] = "Мої опитування";
+    ViewData["Title"] = "My Surveys";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="mb-0">Мої опитування</h1>
-    <a asp-action="Create" class="btn btn-primary">+ Створити опитування</a>
+    <h1 class="mb-0">My Surveys</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Create Survey</a>
 </div>
 
 @if (TempData["SuccessMessage"] is string successMessage)
@@ -23,18 +23,18 @@
 
 @if (!Model.Any())
 {
-    <p>У вас ще немає опитувань.</p>
+    <p>You don't have any surveys yet.</p>
 }
 else
 {
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Назва</th>
-                <th>Статус</th>
-                <th>Публічне</th>
-                <th>Створено</th>
-                <th>Дії</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Public</th>
+                <th>Created</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -43,7 +43,7 @@ else
                 <tr>
                     <td>@survey.Title</td>
                     <td>@survey.Status</td>
-                    <td>@(survey.IsPublic ? "Так" : "Ні")</td>
+                    <td>@(survey.IsPublic ? "Yes" : "No")</td>
                     <td>@survey.CreatedAt.ToLocalTime().ToString("g")</td>
 
                     <td>
@@ -54,20 +54,25 @@ else
                                 <form asp-action="Publish" method="post" style="display:inline;">
                                     <input type="hidden" name="id" value="@survey.Id" />
                                     <button type="submit" class="btn btn-success btn-sm">
-                                        Опублікувати
+                                        Publish
                                     </button>
                                 </form>
+
+                                <a asp-action="Edit" asp-route-id="@survey.Id" class="btn btn-primary btn-sm">
+                                    Edit
+                                </a>
                             }
                             else
                             {
-                                <span class="text-success">Опубліковано</span>
+                                <span class="text-success">Published</span>
                             }
-                    
-                            <!-- 🔥 DELETE -->
+
+
+                            <!-- DELETE -->
                             <form asp-action="Delete" method="post" style="display:inline;">
                                 <input type="hidden" name="id" value="@survey.Id" />
                                 <button type="submit" class="btn btn-danger btn-sm">
-                                    Видалити
+                                    Delete
                                 </button>
                             </form>
                     

@@ -1,4 +1,4 @@
-// <copyright file="CreateSurveyViewModel.cs" company="PlaceholderCompany">
+// <copyright file="EditSurveyViewModel.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
@@ -7,10 +7,12 @@ namespace SurveyPro.Web.ViewModels.Surveys;
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
-/// Create survey form.
+/// Edit survey form.
 /// </summary>
-public sealed class CreateSurveyViewModel
+public sealed class EditSurveyViewModel
 {
+    public Guid Id { get; set; }
+
     [Required]
     [MaxLength(200)]
     [Display(Name = "Name")]
@@ -21,5 +23,5 @@ public sealed class CreateSurveyViewModel
     public string? Description { get; set; }
 
     [Display(Name = "Public Survey")]
-    public bool IsPublic { get; set; } = false;
+    public bool IsPublic { get; set; }
 }

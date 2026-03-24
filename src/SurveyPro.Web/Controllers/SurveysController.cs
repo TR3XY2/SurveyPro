@@ -99,7 +99,67 @@ public class SurveysController : Controller
         }
 
         this.logger.LogInformation("Author {AuthorId} created survey {SurveyId}", authorIdResult.Value, result.Value);
-        TempData["SuccessMessage"] = "Опитування створено.";
+        TempData["SuccessMessage"] = "Survey created.";
+        return this.RedirectToAction(nameof(this.My));
+    }
+
+    [Authorize(Roles = "Author")]
+    public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
+    {
+        var authorIdResult = this.GetCurrentUserId();
+        if (authorIdResult.IsFailure)
+        {
+            return this.RedirectToAction("Login", "Account");
+        }
+
+        var result = await this.surveyService.GetByIdAsync(id, authorIdResult.Value, cancellationToken);
+        if (result.IsFailure)
+        {
+            TempData["ErrorMessage"] = result.Error;
+            return this.RedirectToAction(nameof(this.My));
+        }
+
+        var survey = result.Value!;
+        return this.View(new EditSurveyViewModel
+        {
+            Id = survey.Id,
+            Title = survey.Title,
+            Description = survey.Description,
+            IsPublic = survey.IsPublic,
+        });
+    }
+
+    [Authorize(Roles = "Author")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(EditSurveyViewModel model, CancellationToken cancellationToken)
+    {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View(model);
+        }
+
+        var authorIdResult = this.GetCurrentUserId();
+        if (authorIdResult.IsFailure)
+        {
+            return this.RedirectToAction("Login", "Account");
+        }
+
+        var request = new UpdateSurveyRequestDto
+        {
+            Title = model.Title,
+            Description = model.Description,
+            IsPublic = model.IsPublic,
+        };
+
+        var result = await this.surveyService.UpdateAsync(model.Id, authorIdResult.Value, request, cancellationToken);
+        if (result.IsFailure)
+        {
+            this.ModelState.AddModelError(string.Empty, result.Error);
+            return this.View(model);
+        }
+
+        TempData["SuccessMessage"] = "Survey updated.";
         return this.RedirectToAction(nameof(this.My));
     }
 
@@ -135,7 +195,7 @@ public class SurveysController : Controller
             return this.RedirectToAction(nameof(this.My));
         }
 
-        TempData["SuccessMessage"] = "Опитування опубліковано.";
+        TempData["SuccessMessage"] = "Survey published.";
         return this.RedirectToAction(nameof(this.My));
     }
 
@@ -161,7 +221,7 @@ public class SurveysController : Controller
         }
         else
         {
-            TempData["SuccessMessage"] = "Опитування видалено.";
+            TempData["SuccessMessage"] = "Survey deleted.";
         }
 
         return this.RedirectToAction(nameof(this.My));

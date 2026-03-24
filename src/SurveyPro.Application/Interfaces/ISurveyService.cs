@@ -21,4 +21,8 @@ public interface ISurveyService
     Task<Result> PublishAsync(Guid surveyId, Guid authorId, CancellationToken cancellationToken);
 
     Task<Result> DeleteAsync(Guid surveyId, Guid authorId, CancellationToken cancellationToken);
+
+    Task<Result<SurveyListItemDto>> GetByIdAsync(Guid surveyId, Guid authorId, CancellationToken cancellationToken);
+
+    Task<Result> UpdateAsync(Guid surveyId, Guid authorId, UpdateSurveyRequestDto request, CancellationToken cancellationToken);
 }

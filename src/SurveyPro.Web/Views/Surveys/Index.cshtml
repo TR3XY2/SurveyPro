@@ -2,10 +2,10 @@
 @model IReadOnlyCollection<SurveyListItemDto>
 
 @{
-    ViewData["Title"] = "Опитування";
+    ViewData["Title"] = "Surveys";
 }
 
-<h1 class="mb-3">Доступні опитування</h1>
+<h1 class="mb-3">Available Surveys</h1>
 
 @if (TempData["ErrorMessage"] is string errorMessage)
 {
@@ -14,7 +14,7 @@
 
 @if (!Model.Any())
 {
-    <p>Наразі немає доступних опитувань.</p>
+    <p>There are currently no available surveys.</p>
 }
 else
 {

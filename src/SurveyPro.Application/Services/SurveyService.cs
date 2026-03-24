@@ -90,12 +90,12 @@ public sealed class SurveyService : ISurveyService
 
         if (survey == null)
         {
-            return Result.Failure("Опитування не знайдено");
+            return Result.Failure("Survey not found");
         }
 
         if (survey.AuthorId != authorId)
         {
-            return Result.Failure("Немає доступу");
+            return Result.Failure("Access denied");
         }
 
         survey.Status = SurveyStatuses.Published;
@@ -120,6 +120,68 @@ public sealed class SurveyService : ISurveyService
         await this.surveyRepository.DeleteAsync(surveyId, cancellationToken);
 
         this.logger.LogInformation("Survey {SurveyId} deleted", surveyId);
+
+        return Result.Success();
+    }
+
+    public async Task<Result<SurveyListItemDto>> GetByIdAsync(
+        Guid surveyId,
+        Guid authorId,
+        CancellationToken cancellationToken)
+    {
+        var survey = await this.surveyRepository.GetByIdAsync(surveyId, cancellationToken);
+
+        if (survey == null)
+        {
+            return Result<SurveyListItemDto>.Failure("Survey not found.");
+        }
+
+        if (survey.AuthorId != authorId)
+        {
+            return Result<SurveyListItemDto>.Failure("Access denied.");
+        }
+
+        return Result<SurveyListItemDto>.Success(new SurveyListItemDto
+        {
+            Id = survey.Id,
+            Title = survey.Title,
+            Description = survey.Description,
+            Status = survey.Status,
+            IsPublic = survey.IsPublic,
+            CreatedAt = survey.CreatedAt,
+        });
+    }
+
+    public async Task<Result> UpdateAsync(
+        Guid surveyId,
+        Guid authorId,
+        UpdateSurveyRequestDto request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            return Result.Failure("Survey title is required.");
+        }
+
+        var survey = await this.surveyRepository.GetByIdAsync(surveyId, cancellationToken);
+
+        if (survey == null)
+        {
+            return Result.Failure("Survey not found.");
+        }
+
+        if (survey.AuthorId != authorId)
+        {
+            return Result.Failure("Access denied.");
+        }
+
+        survey.Title = request.Title.Trim();
+        survey.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
+        survey.IsPublic = request.IsPublic;
+
+        await this.surveyRepository.UpdateAsync(survey, cancellationToken);
+
+        this.logger.LogInformation("Survey {SurveyId} updated by author {AuthorId}", surveyId, authorId);
 
         return Result.Success();
     }
