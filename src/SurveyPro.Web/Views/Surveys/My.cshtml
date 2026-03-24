@@ -1,0 +1,49 @@
+@model IReadOnlyCollection<SurveyPro.Application.Surveys.Contracts.SurveyListItemDto>
+
+@{
+    ViewData["Title"] = "Мої опитування";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Мої опитування</h1>
+    <a asp-action="Create" class="btn btn-primary">+ Створити опитування</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (!Model.Any())
+{
+    <p>У вас ще немає опитувань.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Назва</th>
+                <th>Статус</th>
+                <th>Публічне</th>
+                <th>Створено</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var survey in Model)
+            {
+                <tr>
+                    <td>@survey.Title</td>
+                    <td>@survey.Status</td>
+                    <td>@(survey.IsPublic ? "Так" : "Ні")</td>
+                    <td>@survey.CreatedAt.ToLocalTime().ToString("g")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

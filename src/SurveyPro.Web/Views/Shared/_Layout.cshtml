@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -24,19 +24,31 @@
                         </li>
 
                         <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Surveys" asp-action="Index">Surveys</a>
+                        </li>
+
+                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+
+                        @if (User.IsInRole("Author"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Surveys" asp-action="My">My surveys</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Surveys" asp-action="Create">Create survey</a>
+                            </li>
+                        }
                     </ul>
 
                     <ul class="navbar-nav">
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Profile" method="post">
-                                    <button type="submit" class="nav-link btn btn-link text-dark">
-                                        Profile
-                                    </button>
-                                </form>
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">
+                                    Profile
+                                </a>
                             </li>
 
                             <li class="nav-item">

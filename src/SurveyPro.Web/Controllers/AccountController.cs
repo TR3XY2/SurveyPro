@@ -69,6 +69,7 @@ public class AccountController : Controller
             this.logger.LogInformation("User registered {Email}", model.Email);
 
             await this.userManager.AddToRoleAsync(user, "Respondent");
+            await this.userManager.AddToRoleAsync(user, "Author");
 
             await this.signInManager.SignInAsync(user, false);
 

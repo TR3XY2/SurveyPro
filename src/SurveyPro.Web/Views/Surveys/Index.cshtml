@@ -1,0 +1,36 @@
+@model IReadOnlyCollection<SurveyPro.Application.Surveys.Contracts.SurveyListItemDto>
+
+@{
+    ViewData["Title"] = "Опитування";
+}
+
+<h1 class="mb-3">Доступні опитування</h1>
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (!Model.Any())
+{
+    <p>Наразі немає доступних опитувань.</p>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var survey in Model)
+        {
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">@survey.Title</h5>
+                    <small>@survey.CreatedAt.ToLocalTime().ToString("g")</small>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(survey.Description))
+                {
+                    <p class="mb-1">@survey.Description</p>
+                }
+                <small>Статус: @survey.Status</small>
+            </div>
+        }
+    </div>
+}

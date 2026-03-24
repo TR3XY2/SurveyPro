@@ -7,9 +7,12 @@ namespace SurveyPro.Web;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using SurveyPro.Application.Surveys;
 using SurveyPro.Domain.Entities;
 using SurveyPro.Infrastructure.Identity;
 using SurveyPro.Infrastructure.Persistence;
+using SurveyPro.Infrastructure.Repositories;
+using SurveyPro.Web.Infrastructure;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -53,6 +56,11 @@ public class Program
             options.AccessDeniedPath = "/Account/AccessDenied";
         });
 
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+        builder.Services.AddProblemDetails();
+        builder.Services.AddScoped<ISurveyRepository, SurveyRepository>();
+        builder.Services.AddScoped<ISurveyService, SurveyService>();
+
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())
@@ -70,10 +78,7 @@ public class Program
         app.UseSerilogRequestLogging();
 
         // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Home/Error");
-        }
+        app.UseExceptionHandler();
 
         app.UseStaticFiles();
 

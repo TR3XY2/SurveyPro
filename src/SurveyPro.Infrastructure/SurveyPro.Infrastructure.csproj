@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SurveyPro.Application\SurveyPro.Application.csproj" />
     <ProjectReference Include="..\SurveyPro.Domain\SurveyPro.Domain.csproj" />
   </ItemGroup>
 
