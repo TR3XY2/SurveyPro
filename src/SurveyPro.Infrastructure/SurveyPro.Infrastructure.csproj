@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SurveyPro.Application\SurveyPro.Application.csproj" />
     <ProjectReference Include="..\SurveyPro.Domain\SurveyPro.Domain.csproj" />
   </ItemGroup>
 

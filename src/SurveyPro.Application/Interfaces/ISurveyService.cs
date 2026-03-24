@@ -2,17 +2,17 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace SurveyPro.Application.Surveys;
+namespace SurveyPro.Application.Interfaces;
 
 using SurveyPro.Application.Common;
-using SurveyPro.Application.Surveys.Contracts;
+using SurveyPro.Application.DTOs.Surveys;
 
 /// <summary>
 /// Survey use cases.
 /// </summary>
 public interface ISurveyService
 {
-    Task<Result<Guid>> CreateAsync(Guid authorId, CreateSurveyRequest request, CancellationToken cancellationToken);
+    Task<Result<Guid>> CreateAsync(Guid authorId, CreateSurveyRequestDto request, CancellationToken cancellationToken);
 
     Task<Result<IReadOnlyCollection<SurveyListItemDto>>> GetMySurveysAsync(Guid authorId, CancellationToken cancellationToken);
 

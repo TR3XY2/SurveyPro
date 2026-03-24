@@ -1,13 +1,13 @@
-// <copyright file="CreateSurveyRequest.cs" company="PlaceholderCompany">
+// <copyright file="CreateSurveyRequestDto.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace SurveyPro.Application.Surveys.Contracts;
+namespace SurveyPro.Application.DTOs.Surveys;
 
 /// <summary>
 /// Request model for creating a survey.
 /// </summary>
-public sealed class CreateSurveyRequest
+public sealed class CreateSurveyRequestDto
 {
     public string Title { get; set; } = string.Empty;
 

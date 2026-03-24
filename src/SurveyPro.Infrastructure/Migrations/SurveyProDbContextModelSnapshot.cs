@@ -169,7 +169,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("AnswerOptions");
+                    b.ToTable("AnswerOptions", (string)null);
                 });
 
             modelBuilder.Entity("SurveyPro.Domain.Entities.ApplicationUser", b =>
@@ -271,7 +271,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("SurveyId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
                 });
 
             modelBuilder.Entity("SurveyPro.Domain.Entities.Response", b =>
@@ -293,7 +293,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("SessionParticipantId");
 
-                    b.ToTable("Responses");
+                    b.ToTable("Responses", (string)null);
                 });
 
             modelBuilder.Entity("SurveyPro.Domain.Entities.ResponseAnswer", b =>
@@ -322,7 +322,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("ResponseId");
 
-                    b.ToTable("ResponseAnswers");
+                    b.ToTable("ResponseAnswers", (string)null);
                 });
 
             modelBuilder.Entity("SurveyPro.Domain.Entities.SessionParticipant", b =>
@@ -346,7 +346,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("SessionParticipants");
+                    b.ToTable("SessionParticipants", (string)null);
                 });
 
             modelBuilder.Entity("SurveyPro.Domain.Entities.Survey", b =>
@@ -379,7 +379,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Surveys");
+                    b.ToTable("Surveys", (string)null);
                 });
 
             modelBuilder.Entity("SurveyPro.Domain.Entities.SurveySession", b =>
@@ -405,7 +405,7 @@ namespace SurveyPro.Infrastructure.Migrations
 
                     b.HasIndex("SurveyId");
 
-                    b.ToTable("SurveySessions");
+                    b.ToTable("SurveySessions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

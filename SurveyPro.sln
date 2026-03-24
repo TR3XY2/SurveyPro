@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SurveyPro.Tests", "src\SurveyPro.Tests\SurveyPro.Tests.csproj", "{BCEB2B9D-FA67-C8F7-C448-5BB8E6F52E88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,6 +40,10 @@ Global
 		{FF09DA2A-3DDE-4FA0-8241-AE00BD67E46C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF09DA2A-3DDE-4FA0-8241-AE00BD67E46C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FF09DA2A-3DDE-4FA0-8241-AE00BD67E46C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCEB2B9D-FA67-C8F7-C448-5BB8E6F52E88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCEB2B9D-FA67-C8F7-C448-5BB8E6F52E88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCEB2B9D-FA67-C8F7-C448-5BB8E6F52E88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCEB2B9D-FA67-C8F7-C448-5BB8E6F52E88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

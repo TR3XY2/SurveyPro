@@ -2,7 +2,9 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace SurveyPro.Application.Surveys.Contracts;
+namespace SurveyPro.Application.DTOs.Surveys;
+
+using SurveyPro.Domain.Enums;
 
 /// <summary>
 /// Survey item for lists.
@@ -15,7 +17,7 @@ public sealed class SurveyListItemDto
 
     public string? Description { get; set; }
 
-    public string Status { get; set; } = string.Empty;
+    public SurveyStatuses Status { get; set; } = SurveyStatuses.Draft;
 
     public bool IsPublic { get; set; }
 

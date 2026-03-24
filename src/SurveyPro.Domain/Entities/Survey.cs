@@ -4,6 +4,7 @@
 
 namespace SurveyPro.Domain.Entities;
 
+using SurveyPro.Domain.Enums;
 using System;
 
 public class Survey
@@ -18,7 +19,7 @@ public class Survey
 
     public ApplicationUser Author { get; set; } = null!;
 
-    public string Status { get; set; } = string.Empty;
+    public SurveyStatuses Status { get; set; } = SurveyStatuses.Draft;
 
     public bool IsPublic { get; set; }
 

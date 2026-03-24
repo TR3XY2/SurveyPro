@@ -7,8 +7,8 @@ namespace SurveyPro.Web.Controllers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SurveyPro.Application.Surveys;
-using SurveyPro.Application.Surveys.Contracts;
+using SurveyPro.Application.DTOs.Surveys;
+using SurveyPro.Application.Interfaces;
 using SurveyPro.Web.ViewModels.Surveys;
 
 /// <summary>
@@ -84,7 +84,7 @@ public class SurveysController : Controller
             return this.RedirectToAction("Login", "Account");
         }
 
-        var request = new CreateSurveyRequest
+        var request = new CreateSurveyRequestDto
         {
             Title = model.Title,
             Description = model.Description,

@@ -2,7 +2,7 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace SurveyPro.Application.Surveys;
+namespace SurveyPro.Infrastructure.Interfaces;
 
 using SurveyPro.Domain.Entities;
 

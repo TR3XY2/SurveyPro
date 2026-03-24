@@ -40,9 +40,13 @@ public class SurveyProDbContext : IdentityDbContext<ApplicationUser, IdentityRol
         base.OnModelCreating(builder);
 
         builder.Entity<Survey>()
-        .HasOne(s => s.Author)
-        .WithMany(u => u.Surveys)
-        .HasForeignKey(s => s.AuthorId);
+            .HasOne(s => s.Author)
+            .WithMany(u => u.Surveys)
+            .HasForeignKey(s => s.AuthorId);
+
+        builder.Entity<Survey>()
+            .Property(s => s.Status)
+            .HasConversion<string>();
 
         builder.Entity<Question>()
             .HasOne(q => q.Survey)

@@ -21,5 +21,5 @@ public sealed class CreateSurveyViewModel
     public string? Description { get; set; }
 
     [Display(Name = "Публічне опитування")]
-    public bool IsPublic { get; set; }
+    public bool IsPublic { get; set; } = false;
 }

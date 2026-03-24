@@ -2,12 +2,15 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace SurveyPro.Application.Surveys;
+namespace SurveyPro.Application.Services;
 
 using Microsoft.Extensions.Logging;
 using SurveyPro.Application.Common;
-using SurveyPro.Application.Surveys.Contracts;
+using SurveyPro.Application.DTOs.Surveys;
+using SurveyPro.Application.Interfaces;
 using SurveyPro.Domain.Entities;
+using SurveyPro.Domain.Enums;
+using SurveyPro.Infrastructure.Interfaces;
 
 /// <summary>
 /// Survey use-case service.
@@ -27,7 +30,7 @@ public sealed class SurveyService : ISurveyService
 
     public async Task<Result<Guid>> CreateAsync(
         Guid authorId,
-        CreateSurveyRequest request,
+        CreateSurveyRequestDto request,
         CancellationToken cancellationToken)
     {
         if (authorId == Guid.Empty)
@@ -46,14 +49,14 @@ public sealed class SurveyService : ISurveyService
             AuthorId = authorId,
             Title = request.Title.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
-            Status = "Draft",
+            Status = SurveyStatuses.Draft,
             IsPublic = request.IsPublic,
             CreatedAt = DateTime.UtcNow,
         };
 
-        await this.surveyRepository.AddAsync(survey, cancellationToken);
+        await surveyRepository.AddAsync(survey, cancellationToken);
 
-        this.logger.LogInformation(
+        logger.LogInformation(
             "Survey {SurveyId} created by author {AuthorId}",
             survey.Id,
             authorId);
@@ -70,14 +73,14 @@ public sealed class SurveyService : ISurveyService
             return Result<IReadOnlyCollection<SurveyListItemDto>>.Failure("Invalid author id.");
         }
 
-        var surveys = await this.surveyRepository.GetByAuthorIdAsync(authorId, cancellationToken);
+        var surveys = await surveyRepository.GetByAuthorIdAsync(authorId, cancellationToken);
         return Result<IReadOnlyCollection<SurveyListItemDto>>.Success(MapToList(surveys));
     }
 
     public async Task<Result<IReadOnlyCollection<SurveyListItemDto>>> GetPublicSurveysAsync(
         CancellationToken cancellationToken)
     {
-        var surveys = await this.surveyRepository.GetPublicAsync(cancellationToken);
+        var surveys = await surveyRepository.GetPublicAsync(cancellationToken);
         return Result<IReadOnlyCollection<SurveyListItemDto>>.Success(MapToList(surveys));
     }
 

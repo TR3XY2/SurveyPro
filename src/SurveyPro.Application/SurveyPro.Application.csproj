@@ -9,11 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SurveyPro.Domain\SurveyPro.Domain.csproj" />
+    <ProjectReference Include="..\SurveyPro.Infrastructure\SurveyPro.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

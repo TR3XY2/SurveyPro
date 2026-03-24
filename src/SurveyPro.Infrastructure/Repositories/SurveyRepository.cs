@@ -4,9 +4,15 @@
 
 namespace SurveyPro.Infrastructure.Repositories;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using SurveyPro.Application.Surveys;
 using SurveyPro.Domain.Entities;
+using SurveyPro.Domain.Enums;
+using SurveyPro.Infrastructure.Interfaces;
 using SurveyPro.Infrastructure.Persistence;
 
 /// <summary>
@@ -41,7 +47,7 @@ public sealed class SurveyRepository : ISurveyRepository
     public async Task<IReadOnlyCollection<Survey>> GetPublicAsync(CancellationToken cancellationToken)
     {
         return await this.dbContext.Surveys
-            .Where(s => s.IsPublic || s.Status == "Published")
+            .Where(s => s.IsPublic && s.Status == SurveyStatuses.Published)
             .OrderByDescending(s => s.CreatedAt)
             .AsNoTracking()
             .ToListAsync(cancellationToken);

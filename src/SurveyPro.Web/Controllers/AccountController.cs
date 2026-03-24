@@ -97,13 +97,10 @@ public class AccountController : Controller
             return RedirectToAction("Login");
         }
 
-        var roles = await this.userManager.GetRolesAsync(user);
-
         var model = new ProfileViewModel
         {
             Name = user.Name,
             Email = user.Email ?? string.Empty,
-            Roles = roles,
         };
 
         return View(model);
@@ -217,6 +214,14 @@ public class AccountController : Controller
         }
 
         return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LogoutConfirmed()
+    {
+        await this.signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
     }
 
     /// <summary>

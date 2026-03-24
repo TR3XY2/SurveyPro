@@ -51,12 +51,12 @@
                                 </a>
                             </li>
 
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit" class="nav-link btn btn-link text-dark">
-                                        Logout
-                                    </button>
-                                </form>
+                             <li class="nav-item">
+                                <button class="nav-link btn btn-link text-primary fw-bold"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#logoutModal">
+                                    Logout
+                                </button>
                             </li>
                         }
                         else
@@ -89,6 +89,38 @@
             &copy; 2026 - SurveyPro.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <div class="modal fade" id="logoutModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    Are you sure you want to logout?
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <form asp-controller="Account" asp-action="LogoutConfirmed" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger" style="background-color:#007bff; color:white;">
+                            Yes, Logout
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

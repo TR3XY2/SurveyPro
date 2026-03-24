@@ -10,20 +10,20 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <div class="mb-3">
-        <label asp-for="Title" class="form-label"></label>
+        <label asp-for="Title" class="form-label">@Html.DisplayNameFor(m => m.Title)</label>
         <input asp-for="Title" class="form-control" />
         <span asp-validation-for="Title" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
+        <label asp-for="Description" class="form-label">@Html.DisplayNameFor(m => m.Description)</label>
         <textarea asp-for="Description" class="form-control" rows="4"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
 
     <div class="form-check mb-3">
         <input asp-for="IsPublic" class="form-check-input" />
-        <label asp-for="IsPublic" class="form-check-label"></label>
+        <label asp-for="IsPublic" class="form-check-label">@Html.DisplayNameFor(m => m.IsPublic)</label>
     </div>
 
     <button type="submit" class="btn btn-primary">Зберегти</button>
