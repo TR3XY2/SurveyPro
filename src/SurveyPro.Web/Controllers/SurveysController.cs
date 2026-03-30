@@ -15,7 +15,7 @@ using SurveyPro.Web.ViewModels.Surveys;
 /// Surveys user flows.
 /// </summary>
 [Authorize]
-public class SurveysController : Controller
+public class SurveysController : BaseController
 {
     private readonly ISurveyService surveyService;
     private readonly ILogger<SurveysController> logger;
@@ -100,12 +100,18 @@ public class SurveysController : Controller
 
         this.logger.LogInformation("Author {AuthorId} created survey {SurveyId}", authorIdResult.Value, result.Value);
         TempData["SuccessMessage"] = "Survey created.";
-        return this.RedirectToAction(nameof(this.My));
+
+        return this.RedirectToAction("Edit", new { id = result.Value });
     }
 
     [Authorize(Roles = "Author")]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var authorIdResult = this.GetCurrentUserId();
         if (authorIdResult.IsFailure)
         {
@@ -163,24 +169,16 @@ public class SurveysController : Controller
         return this.RedirectToAction(nameof(this.My));
     }
 
-    private (bool IsFailure, Guid Value) GetCurrentUserId()
-    {
-        var userId = this.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(userId, out var parsed))
-        {
-            return (true, Guid.Empty);
-        }
-
-        return (false, parsed);
-    }
-
     [Authorize(Roles = "Author")]
     [HttpPost]
     [ValidateAntiForgeryToken]
-#pragma warning disable SA1202 // Elements should be ordered by access
     public async Task<IActionResult> Publish(Guid id, CancellationToken cancellationToken)
-#pragma warning restore SA1202 // Elements should be ordered by access
     {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var authorIdResult = this.GetCurrentUserId();
         if (authorIdResult.IsFailure)
         {
@@ -203,6 +201,11 @@ public class SurveysController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
+        if (!this.ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var authorIdResult = this.GetCurrentUserId();
 
         if (authorIdResult.IsFailure)

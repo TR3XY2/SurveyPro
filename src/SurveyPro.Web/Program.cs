@@ -62,6 +62,8 @@ public class Program
         builder.Services.AddProblemDetails();
         builder.Services.AddScoped<ISurveyRepository, SurveyRepository>();
         builder.Services.AddScoped<ISurveyService, SurveyService>();
+        builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+        builder.Services.AddScoped<IQuestionService, QuestionService>();
 
         var app = builder.Build();
 

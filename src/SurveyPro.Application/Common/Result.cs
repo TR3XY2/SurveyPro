@@ -21,6 +21,11 @@ public class Result
 
     public string Error { get; }
 
+    public static implicit operator Result(string error)
+    {
+        return Failure(error);
+    }
+
     public static Result Success()
     {
         return new Result(true, string.Empty);
@@ -45,6 +50,16 @@ public sealed class Result<TValue> : Result
     }
 
     public TValue? Value { get; }
+
+    public static implicit operator Result<TValue>(TValue value)
+    {
+        return Success(value);
+    }
+
+    public static implicit operator Result<TValue>(string error)
+    {
+        return Failure(error);
+    }
 
     public static Result<TValue> Success(TValue value)
     {

@@ -9,9 +9,7 @@ namespace SurveyPro.Web.Controllers
     using Microsoft.Extensions.Logging;
     using SurveyPro.Web.ViewModels;
 
-#pragma warning disable SA1600 // Elements should be documented
     public class HomeController : Controller
-#pragma warning restore SA1600 // Elements should be documented
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class.
@@ -20,9 +18,7 @@ namespace SurveyPro.Web.Controllers
         {
         }
 
-#pragma warning disable SA1600 // Elements should be documented
         public IActionResult Index()
-#pragma warning restore SA1600 // Elements should be documented
         {
             return View();
         }
