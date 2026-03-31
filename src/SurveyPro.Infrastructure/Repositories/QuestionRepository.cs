@@ -53,4 +53,15 @@ public class QuestionRepository : IQuestionRepository
             .OrderBy(q => q.OrderNumber)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await dbContext.Questions
+            .FirstOrDefaultAsync(q => q.Id == id, cancellationToken);
+    }
+
+    public void Remove(Question question)
+    {
+        dbContext.Questions.Remove(question);
+    }
 }

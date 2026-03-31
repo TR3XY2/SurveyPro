@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SurveyPro.Application.Common;
 using SurveyPro.Application.DTOs.Questions;
+using SurveyPro.Domain.Entities;
 
 public interface IQuestionService
 {
@@ -20,4 +21,6 @@ public interface IQuestionService
         CancellationToken cancellationToken);
 
     Task<List<QuestionDto>> GetBySurveyIdAsync(Guid surveyId, CancellationToken cancellationToken);
+
+    Task DeleteAsync(Guid questionId, CancellationToken cancellationToken);
 }

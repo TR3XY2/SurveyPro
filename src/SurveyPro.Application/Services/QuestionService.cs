@@ -114,4 +114,30 @@ public class QuestionService : IQuestionService
             Options = q.Options?.Select(o => o.Text).ToList(),
         }).ToList();
     }
+
+    public async Task DeleteAsync(Guid questionId, CancellationToken cancellationToken)
+    {
+        var question = await repository.GetByIdAsync(questionId, cancellationToken);
+
+        if (question == null)
+        {
+            return;
+        }
+
+        repository.Remove(question);
+
+        await repository.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Question {QuestionId} deleted", questionId);
+    }
+
+    public Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Remove(Question question)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -55,21 +55,37 @@
         {
             <div class="card mb-2">
                 <div class="card-body">
-                    <h5>
-                        @q.OrderNumber. @q.Text
-                    </h5>
-
-                    <small class="text-muted">Type: @q.Type</small>
-
-                    @if (q.Options != null && q.Options.Any())
-                    {
-                        <ul class="mt-2">
-                            @foreach (var opt in q.Options)
+        
+                    <div class="d-flex justify-content-between align-items-start">
+        
+                        <!-- ЛІВА ЧАСТИНА -->
+                        <div>
+                            <h5>@q.OrderNumber. @q.Text</h5>
+                            <small class="text-muted">Type: @q.Type</small>
+        
+                            @if (q.Options != null && q.Options.Any())
                             {
-                                <li>@opt</li>
+                                <ul class="mt-2">
+                                    @foreach (var opt in q.Options)
+                                    {
+                                        <li>@opt</li>
+                                    }
+                                </ul>
                             }
-                        </ul>
-                    }
+                        </div>
+        
+                        <!-- 🔴 КНОПКА DELETE -->
+                        <form asp-controller="Questions" asp-action="Delete" method="post">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" name="id" value="@q.Id" />
+                            <input type="hidden" name="surveyId" value="@Model.Id" />
+        
+                            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+                        </form>
+        
+                    </div>
+        
                 </div>
             </div>
         }

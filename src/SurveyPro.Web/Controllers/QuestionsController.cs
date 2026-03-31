@@ -57,4 +57,19 @@ public class QuestionsController : BaseController
 
         return RedirectToAction("Edit", "Surveys", new { id = model.SurveyId });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, Guid surveyId, CancellationToken cancellationToken)
+    {
+        var userIdResult = GetCurrentUserId();
+        if (userIdResult.IsFailure)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        await questionService.DeleteAsync(id, cancellationToken);
+
+        return RedirectToAction("Edit", "Surveys", new { id = surveyId });
+    }
 }

@@ -22,4 +22,8 @@ public interface IQuestionRepository
     Task SaveChangesAsync(CancellationToken cancellationToken);
 
     Task<List<Question>> GetQuestionsBySurveyIdAsync(Guid surveyId, CancellationToken cancellationToken);
+
+    Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+
+    void Remove(Question question);
 }
