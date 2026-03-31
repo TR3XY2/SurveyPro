@@ -18,4 +18,6 @@ public interface IQuestionService
         Guid authorId,
         CreateQuestionRequestDto request,
         CancellationToken cancellationToken);
+
+    Task<List<QuestionDto>> GetBySurveyIdAsync(Guid surveyId, CancellationToken cancellationToken);
 }

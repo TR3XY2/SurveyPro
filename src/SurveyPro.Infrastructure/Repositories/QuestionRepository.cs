@@ -44,4 +44,13 @@ public class QuestionRepository : IQuestionRepository
     {
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<List<Question>> GetQuestionsBySurveyIdAsync(Guid surveyId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Questions
+            .Where(q => q.SurveyId == surveyId)
+            .Include(q => q.Options)
+            .OrderBy(q => q.OrderNumber)
+            .ToListAsync(cancellationToken);
+    }
 }

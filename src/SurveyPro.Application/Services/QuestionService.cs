@@ -100,4 +100,18 @@ public class QuestionService : IQuestionService
 
         return question.Id;
     }
+
+    public async Task<List<QuestionDto>> GetBySurveyIdAsync(Guid surveyId, CancellationToken cancellationToken)
+    {
+        var questions = await repository.GetQuestionsBySurveyIdAsync(surveyId, cancellationToken);
+
+        return questions.Select(q => new QuestionDto
+        {
+            Id = q.Id,
+            Text = q.Text,
+            Type = q.Type,
+            OrderNumber = q.OrderNumber,
+            Options = q.Options?.Select(o => o.Text).ToList(),
+        }).ToList();
+    }
 }

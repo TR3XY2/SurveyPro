@@ -4,6 +4,7 @@
 
 namespace SurveyPro.Web.ViewModels.Surveys;
 
+using SurveyPro.Application.DTOs.Questions;
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
@@ -24,4 +25,6 @@ public sealed class EditSurveyViewModel
 
     [Display(Name = "Public Survey")]
     public bool IsPublic { get; set; }
+
+    public List<QuestionDto> Questions { get; set; } = new ();
 }

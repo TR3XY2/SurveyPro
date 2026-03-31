@@ -1,4 +1,4 @@
-// <copyright file="SurveysController.cs" company="PlaceholderCompany">
+﻿// <copyright file="SurveysController.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
@@ -19,13 +19,16 @@ public class SurveysController : BaseController
 {
     private readonly ISurveyService surveyService;
     private readonly ILogger<SurveysController> logger;
+    private readonly IQuestionService questionService;
 
     public SurveysController(
         ISurveyService surveyService,
-        ILogger<SurveysController> logger)
+        ILogger<SurveysController> logger,
+        IQuestionService questionService)
     {
         this.surveyService = surveyService;
         this.logger = logger;
+        this.questionService = questionService;
     }
 
     [AllowAnonymous]
@@ -107,11 +110,6 @@ public class SurveysController : BaseController
     [Authorize(Roles = "Author")]
     public async Task<IActionResult> Edit(Guid id, CancellationToken cancellationToken)
     {
-        if (!this.ModelState.IsValid)
-        {
-            return this.View();
-        }
-
         var authorIdResult = this.GetCurrentUserId();
         if (authorIdResult.IsFailure)
         {
@@ -126,12 +124,16 @@ public class SurveysController : BaseController
         }
 
         var survey = result.Value!;
+
+        var questions = await this.questionService.GetBySurveyIdAsync(id, cancellationToken);
+
         return this.View(new EditSurveyViewModel
         {
             Id = survey.Id,
             Title = survey.Title,
             Description = survey.Description,
             IsPublic = survey.IsPublic,
+            Questions = questions,
         });
     }
 
