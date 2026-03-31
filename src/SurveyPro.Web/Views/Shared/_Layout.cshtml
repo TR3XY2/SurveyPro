@@ -4,13 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SurveyPro.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SurveyPro.Web.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5/dist/quartz/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-dark border-bottom mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SurveyPro.Web</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -20,24 +20,24 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Surveys" asp-action="Index">Surveys</a>
+                            <a class="nav-link" asp-controller="Surveys" asp-action="Index">Surveys</a>
                         </li>
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
 
                         @if (User.IsInRole("Author"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Surveys" asp-action="My">My surveys</a>
+                                <a class="nav-link" asp-controller="Surveys" asp-action="My">My surveys</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Surveys" asp-action="Create">Create survey</a>
+                                <a class="nav-link" asp-controller="Surveys" asp-action="Create">Create survey</a>
                             </li>
                         }
                     </ul>
@@ -46,13 +46,13 @@
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">
+                                <a class="nav-link" asp-controller="Account" asp-action="Profile">
                                     Profile
                                 </a>
                             </li>
 
                              <li class="nav-item">
-                                <button class="nav-link btn btn-link text-primary fw-bold"
+                                <button class="nav-link btn btn-link fw-bold"
                                         data-bs-toggle="modal"
                                         data-bs-target="#logoutModal">
                                     Logout
@@ -62,13 +62,13 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">
                                     Login
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">
                                     Register
                                 </a>
                             </li>
@@ -78,13 +78,13 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container flex-grow-1">
+        <main role="main" class="pb-5 mt-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="border-top text-center py-3 mt-auto">
         <div class="container">
             &copy; 2026 - SurveyPro.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
