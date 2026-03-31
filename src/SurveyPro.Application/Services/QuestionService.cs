@@ -118,17 +118,30 @@ public class QuestionService : IQuestionService
     public async Task DeleteAsync(Guid questionId, CancellationToken cancellationToken)
     {
         var question = await repository.GetByIdAsync(questionId, cancellationToken);
-
         if (question == null)
         {
             return;
         }
 
+        var surveyId = question.SurveyId;
+
         repository.Remove(question);
 
         await repository.SaveChangesAsync(cancellationToken);
 
-        logger.LogInformation("Question {QuestionId} deleted", questionId);
+        // 🔥 ПЕРЕНОМЕРАЦІЯ
+        var questions = await repository.GetQuestionsBySurveyIdAsync(surveyId, cancellationToken);
+
+        var ordered = questions
+            .OrderBy(q => q.OrderNumber)
+            .ToList();
+
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            ordered[i].OrderNumber = i + 1;
+        }
+
+        await repository.SaveChangesAsync(cancellationToken);
     }
 
     public Task<Question?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
