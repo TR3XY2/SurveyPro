@@ -82,6 +82,7 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
         if (userId.HasValue && userId.Value != Guid.Empty)
         {
             dto.DraftAnswers = await this.LoadDraftAnswersAsync(session.Id, userId.Value, cancellationToken);
+            dto.IsSubmitted = await this.IsAlreadySubmittedAsync(session.Id, userId.Value, cancellationToken);
         }
 
         return Result<SurveyParticipationDto>.Success(dto);
@@ -115,6 +116,12 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
         await this.ReplaceDraftAnswersAsync(draftResponse.Id, request.Answers, session.Survey.Questions, cancellationToken);
 
         await this.dbContext.SaveChangesAsync(cancellationToken);
+
+        var alreadySubmitted = await this.IsAlreadySubmittedAsync(session.Id, userId, cancellationToken);
+        if (alreadySubmitted)
+        {
+            return Result.Failure("Survey already submitted. You cannot edit your answers.");
+        }
 
         this.logger.LogInformation(
             "Draft saved for survey {SurveyId} by user {UserId}",
@@ -155,6 +162,70 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
         this.dbContext.ResponseAnswers.RemoveRange(draft.Answers);
 
         await this.dbContext.SaveChangesAsync(ct);
+
+        var alreadySubmitted = await this.IsAlreadySubmittedAsync(session.Id, userId, ct);
+        if (alreadySubmitted)
+        {
+            return Result.Failure("Survey already submitted.");
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> SubmitAsync(Guid userId, string accessCode, Guid surveyId, CancellationToken ct)
+    {
+        var session = await this.GetActiveSessionByCodeAsync(accessCode, ct);
+
+        if (session == null)
+        {
+            return Result.Failure("Survey not found.");
+        }
+
+        if (session.SurveyId != surveyId)
+        {
+            return Result.Failure("Survey mismatch.");
+        }
+
+        var participant = await this.dbContext.SessionParticipants
+            .FirstOrDefaultAsync(p => p.SessionId == session.Id && p.UserId == userId, ct);
+
+        if (participant == null)
+        {
+            return Result.Failure("No draft found.");
+        }
+
+        var draft = await this.dbContext.Responses
+            .FirstOrDefaultAsync(r => r.SessionParticipantId == participant.Id && r.IsDraft, ct);
+
+        if (draft == null)
+        {
+            return Result.Failure("No draft to submit.");
+        }
+
+        var answeredQuestionIds = draft.Answers
+            .Select(a => a.QuestionId)
+            .Distinct()
+            .ToHashSet();
+
+        var allQuestionIds = session.Survey.Questions
+        .Select(q => q.Id)
+        .ToHashSet();
+
+        if (!allQuestionIds.IsSubsetOf(answeredQuestionIds) || answeredQuestionIds.Count < allQuestionIds.Count)
+        {
+            var unansweredCount = allQuestionIds.Except(answeredQuestionIds).Count();
+            return Result.Failure($"Please answer all questions. {unansweredCount} question(s) remaining.");
+        }
+
+        draft.IsDraft = false;
+        draft.SubmittedAt = DateTime.UtcNow;
+
+        await this.dbContext.SaveChangesAsync(ct);
+
+        this.logger.LogInformation(
+            "Survey {SurveyId} submitted by user {UserId}",
+            surveyId,
+            userId);
 
         return Result.Success();
     }
@@ -365,5 +436,16 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
                     .ToList(),
             })
             .ToList();
+    }
+
+    private async Task<bool> IsAlreadySubmittedAsync(Guid sessionId, Guid userId, CancellationToken ct)
+    {
+        return await this.dbContext.Responses
+            .AnyAsync(
+                r =>
+                !r.IsDraft &&
+                r.SessionParticipant.SessionId == sessionId &&
+                r.SessionParticipant.UserId == userId,
+                ct);
     }
 }

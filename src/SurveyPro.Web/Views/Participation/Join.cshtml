@@ -12,7 +12,6 @@
             <p class="text-muted mb-0">@Model.Description</p>
         }
     </div>
-
     <span class="badge bg-secondary">Code: @Model.AccessCode</span>
 </div>
 
@@ -33,184 +32,194 @@
     </div>
 }
 
-<form asp-action="Clear" method="post" class="mb-3">
-    <input type="hidden" name="code" value="@Model.AccessCode" />
-    <button type="submit" class="btn btn-danger">
-        Clear all answers
-    </button>
-</form>
+@if (Model.IsSubmitted)
+{
+    <div class="alert alert-success mt-3">
+        <strong>You have already submitted this survey.</strong>
+        Your answers cannot be changed.
+    </div>
 
-<form asp-action="Join" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="SurveyId" />
-    <input type="hidden" asp-for="AccessCode" />
-
+    @* Показуємо відповіді тільки для перегляду *@
     @for (var i = 0; i < Model.Questions.Count; i++)
     {
         var question = Model.Questions[i];
-
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title">@question.OrderNumber. @question.Text</h5>
-
                 @if (question.Type == "Text")
                 {
-                    <textarea asp-for="Questions[i].TextAnswer" class="form-control" rows="4"></textarea>
-                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="clearText(@i)"> Clear </button>
+                    <p class="form-control-plaintext">@(question.TextAnswer ?? "—")</p>
                 }
                 else if (question.Type == "MultipleChoice")
                 {
-                    <div class="d-grid gap-2">
-                        @for (var optionIndex = 0; optionIndex < question.Options.Count; optionIndex++)
-                        {
-                            var option = question.Options[optionIndex];
-                            <div class="form-check">
-                                @if (question.SelectedOptionIds.Contains(option.Id))
-                                {
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="Questions[@i].SelectedOptionIds"
-                                           value="@option.Id"
-                                           checked />
-                                }
-                                else
-                                {
-                                    <input class="form-check-input"
-                                           type="checkbox"
-                                           name="Questions[@i].SelectedOptionIds"
-                                           value="@option.Id" />
-                                }
-                                <label class="form-check-label">@option.Text</label>
-                            </div>
-                        }
-                    </div>
-                    <button type="button"
-                            class="btn btn-sm btn-outline-danger mt-2"
-                            onclick="clearCheckbox(@i)">
-                        Clear
-                    </button>
+                    @foreach (var option in question.Options)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   disabled
+                                   @(question.SelectedOptionIds.Contains(option.Id) ? "checked" : "") />
+                            <label class="form-check-label">@option.Text</label>
+                        </div>
+                    }
                 }
                 else
                 {
-                    <div class="d-grid gap-2">
-                        @for (var optionIndex = 0; optionIndex < question.Options.Count; optionIndex++)
-                        {
-                            var option = question.Options[optionIndex];
-                            <div class="form-check">
-                                @if (question.SelectedOptionId == option.Id)
-                                {
+                    @foreach (var option in question.Options)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio"
+                                   disabled
+                                   @(question.SelectedOptionId == option.Id ? "checked" : "") />
+                            <label class="form-check-label">@option.Text</label>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+}
+else
+{
+    <form asp-action="Clear" method="post" class="mb-3">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="code" value="@Model.AccessCode" />
+        <button type="submit" class="btn btn-outline-danger btn-sm">Clear all answers</button>
+    </form>
+
+    <form asp-action="Join" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SurveyId" />
+        <input type="hidden" asp-for="AccessCode" />
+
+        @for (var i = 0; i < Model.Questions.Count; i++)
+        {
+            var question = Model.Questions[i];
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">@question.OrderNumber. @question.Text</h5>
+
+                    @if (question.Type == "Text")
+                    {
+                        <textarea asp-for="Questions[i].TextAnswer" class="form-control" rows="4"></textarea>
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-2"
+                                onclick="clearText(@i)">Clear</button>
+                    }
+                    else if (question.Type == "MultipleChoice")
+                    {
+                        <div class="d-grid gap-2">
+                            @for (var optionIndex = 0; optionIndex < question.Options.Count; optionIndex++)
+                            {
+                                var option = question.Options[optionIndex];
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           name="Questions[@i].SelectedOptionIds"
+                                           value="@option.Id"
+                                           @(question.SelectedOptionIds.Contains(option.Id) ? "checked" : "") />
+                                    <label class="form-check-label">@option.Text</label>
+                                </div>
+                            }
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-2"
+                                onclick="clearCheckbox(@i)">Clear</button>
+                    }
+                    else
+                    {
+                        <div class="d-grid gap-2">
+                            @for (var optionIndex = 0; optionIndex < question.Options.Count; optionIndex++)
+                            {
+                                var option = question.Options[optionIndex];
+                                <div class="form-check">
                                     <input class="form-check-input"
                                            type="radio"
                                            name="Questions[@i].SelectedOptionId"
                                            value="@option.Id"
-                                           checked />
-                                }
-                                else
-                                {
-                                    <input class="form-check-input"
-                                           type="radio"
-                                           name="Questions[@i].SelectedOptionId"
-                                           value="@option.Id" />
-                                }
-                                <label class="form-check-label">@option.Text</label>
-                            </div>
-                        }
-                    </div>
-                    <button type="button"
-                            class="btn btn-sm btn-outline-danger mt-2"
-                            onclick="clearRadio(@i)">
-                        Clear
-                    </button>
-                }
+                                           @(question.SelectedOptionId == option.Id ? "checked" : "") />
+                                    <label class="form-check-label">@option.Text</label>
+                                </div>
+                            }
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger mt-2"
+                                onclick="clearRadio(@i)">Clear</button>
+                    }
 
-                <input type="hidden" asp-for="Questions[i].QuestionId" />
-                <input type="hidden" asp-for="Questions[i].Type" />
-                <input type="hidden" asp-for="Questions[i].Text" />
-                <input type="hidden" asp-for="Questions[i].OrderNumber" />
+                    <input type="hidden" asp-for="Questions[i].QuestionId" />
+                    <input type="hidden" asp-for="Questions[i].Type" />
+                    <input type="hidden" asp-for="Questions[i].Text" />
+                    <input type="hidden" asp-for="Questions[i].OrderNumber" />
+                </div>
             </div>
-        </div>
-    }
+        }
 
-    <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Save draft</button>
-        <a asp-controller="Surveys" asp-action="Index" class="btn btn-outline-secondary">Back to public surveys</a>
-    </div>
-</form>
+        <div class="d-flex gap-2 mb-2">
+            <button type="submit" class="btn btn-primary">Save draft</button>
+            <a asp-controller="Surveys" asp-action="Index" class="btn btn-outline-secondary">Back to surveys</a>
+        </div>
+    </form>
+
+    <form asp-action="Submit" asp-controller="Participation" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="accessCode" value="@Model.AccessCode" />
+        <input type="hidden" name="surveyId" value="@Model.SurveyId" />
+        <button type="submit" class="btn btn-success">Submit answers</button>
+    </form>
+}
+
 <script>
-        
-        function clearText(i) {
+    function clearText(i) {
         const el = document.querySelector(`[name="Questions[${i}].TextAnswer"]`);
         el.value = '';
-    
-        // 🔥 тригеримо autosave
         el.dispatchEvent(new Event('input'));
     }
-    
+
     function clearRadio(i) {
         document.querySelectorAll(`[name="Questions[${i}].SelectedOptionId"]`)
-            .forEach(x => {
-                x.checked = false;
-    
-                // 🔥 тригер
-                x.dispatchEvent(new Event('change'));
-            });
+            .forEach(x => { x.checked = false; x.dispatchEvent(new Event('change')); });
     }
 
     function clearCheckbox(i) {
         document.querySelectorAll(`[name="Questions[${i}].SelectedOptionIds"]`)
-            .forEach(x => {
-                x.checked = false;
-    
-                // 🔥 тригер
-                x.dispatchEvent(new Event('change'));
-            });
+            .forEach(x => { x.checked = false; x.dispatchEvent(new Event('change')); });
     }
-    
-        let timeout = null;
-    
+
+    let timeout = null;
+
     function collectFormData() {
         const questions = [];
 
         document.querySelectorAll('.card').forEach((card, index) => {
-            const questionId = card.querySelector('[name="Questions[' + index + '].QuestionId"]').value;
-            const type = card.querySelector('[name="Questions[' + index + '].Type"]').value;
+            const questionIdEl = card.querySelector('[name="Questions[' + index + '].QuestionId"]');
+            const typeEl = card.querySelector('[name="Questions[' + index + '].Type"]');
+            if (!questionIdEl || !typeEl) return;
+
+            const questionId = questionIdEl.value;
+            const type = typeEl.value;
 
             let textAnswer = null;
             let selectedOptionId = null;
             let selectedOptionIds = [];
 
             const textarea = card.querySelector('textarea');
-            if (textarea) {
-                textAnswer = textarea.value;
-            }
+            if (textarea) textAnswer = textarea.value;
 
             const radio = card.querySelector('input[type="radio"]:checked');
-            if (radio) {
-                selectedOptionId = radio.value;
-            }
+            if (radio) selectedOptionId = radio.value;
 
-            const checkboxes = card.querySelectorAll('input[type="checkbox"]:checked');
-            checkboxes.forEach(cb => selectedOptionIds.push(cb.value));
+            card.querySelectorAll('input[type="checkbox"]:checked')
+                .forEach(cb => selectedOptionIds.push(cb.value));
 
-            questions.push({
-                questionId,
-                type,
-                textAnswer,
-                selectedOptionId,
-                selectedOptionIds
-            });
+            questions.push({ questionId, type, textAnswer, selectedOptionId, selectedOptionIds });
         });
 
         return {
-            surveyId: document.querySelector('[name="SurveyId"]').value,
-            accessCode: document.querySelector('[name="AccessCode"]').value,
-            questions: questions
+            surveyId: document.querySelector('[name="SurveyId"]')?.value,
+            accessCode: document.querySelector('[name="AccessCode"]')?.value,
+            questions
         };
     }
 
     function autoSave() {
         clearTimeout(timeout);
-
         timeout = setTimeout(() => {
             const data = collectFormData();
 
@@ -222,44 +231,78 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(res => {
-                if (res.ok) {
-                    console.log("Draft saved");
-                    showSavedIndicator();
-                }
-            })
+            .then(res => { if (res.ok) { console.log("Draft saved"); showSavedIndicator(); } })
             .catch(err => console.error(err));
-
-        }, 800); // debounce
+        }, 800);
     }
 
     function showSavedIndicator() {
         let el = document.getElementById("autosave-status");
-
         if (!el) {
             el = document.createElement("div");
             el.id = "autosave-status";
-            el.style.position = "fixed";
-            el.style.bottom = "20px";
-            el.style.right = "20px";
-            el.style.background = "#28a745";
-            el.style.color = "white";
-            el.style.padding = "10px 15px";
-            el.style.borderRadius = "8px";
-            el.innerText = "Saved";
+            el.style.cssText = "position:fixed;bottom:20px;right:20px;background:#28a745;color:white;padding:10px 15px;border-radius:8px;transition:opacity 0.5s";
+            el.innerText = "Saved ✓";
             document.body.appendChild(el);
         }
-
         el.style.opacity = "1";
-
-        setTimeout(() => {
-            el.style.opacity = "0";
-        }, 1500);
+        setTimeout(() => { el.style.opacity = "0"; }, 1500);
     }
 
-    // ñëóõàºìî ÂÑ² çì³íè
-    document.querySelectorAll('textarea, input').forEach(el => {
-        el.addEventListener('input', autoSave);
-        el.addEventListener('change', autoSave);
+    @if (!Model.IsSubmitted)
+    {
+        <text>
+        document.querySelectorAll('textarea, input').forEach(el => {
+            el.addEventListener('input', autoSave);
+            el.addEventListener('change', autoSave);
+        });
+        </text>
+    }
+
+    document.querySelector('form[action*="Submit"]')?.addEventListener('submit', function (e) {
+        const errors = [];
+
+        document.querySelectorAll('.card').forEach((card, index) => {
+            const typeEl = card.querySelector(`[name="Questions[${index}].Type"]`);
+            if (!typeEl) return;
+
+            const type = typeEl.value;
+            const orderEl = card.querySelector('h5');
+            const label = orderEl ? orderEl.innerText.trim() : `Question ${index + 1}`;
+
+            if (type === 'Text') {
+                const textarea = card.querySelector('textarea');
+                if (!textarea || !textarea.value.trim()) {
+                    errors.push(label);
+                }
+            } else if (type === 'MultipleChoice') {
+                const checked = card.querySelectorAll('input[type="checkbox"]:checked');
+                if (checked.length === 0) {
+                    errors.push(label);
+                }
+            } else {
+                const checked = card.querySelector('input[type="radio"]:checked');
+                if (!checked) {
+                    errors.push(label);
+                }
+            }
+        });
+
+        if (errors.length > 0) {
+            e.preventDefault();
+
+            let alertEl = document.getElementById('submit-validation-error');
+            if (!alertEl) {
+                alertEl = document.createElement('div');
+                alertEl.id = 'submit-validation-error';
+                alertEl.className = 'alert alert-danger mt-2';
+                document.querySelector('form[action*="Submit"]').before(alertEl);
+            }
+
+            alertEl.innerHTML = `<strong>Please answer all questions before submitting.</strong>
+                <ul class="mb-0 mt-1">${errors.map(e => `<li>${e}</li>`).join('')}</ul>`;
+
+            alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     });
 </script>
