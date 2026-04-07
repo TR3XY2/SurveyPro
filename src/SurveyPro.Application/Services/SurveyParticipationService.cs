@@ -145,7 +145,7 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
 
         if (participant == null)
         {
-            return Result.Success(); // нічого чистити
+            return Result.Success();
         }
 
         var draft = await this.dbContext.Responses
