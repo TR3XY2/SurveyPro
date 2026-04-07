@@ -130,6 +130,7 @@ public class SurveysController : BaseController
         return this.View(new EditSurveyViewModel
         {
             Id = survey.Id,
+            AccessCode = survey.AccessCode,
             Title = survey.Title,
             Description = survey.Description,
             IsPublic = survey.IsPublic,

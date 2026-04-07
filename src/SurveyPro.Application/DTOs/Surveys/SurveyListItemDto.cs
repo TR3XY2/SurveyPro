@@ -22,4 +22,6 @@ public sealed class SurveyListItemDto
     public bool IsPublic { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public string AccessCode { get; set; } = string.Empty;
 }

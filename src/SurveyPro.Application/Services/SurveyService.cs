@@ -4,6 +4,7 @@
 
 namespace SurveyPro.Application.Services;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SurveyPro.Application.Common;
 using SurveyPro.Application.DTOs.Surveys;
@@ -11,6 +12,8 @@ using SurveyPro.Application.Interfaces;
 using SurveyPro.Domain.Entities;
 using SurveyPro.Domain.Enums;
 using SurveyPro.Infrastructure.Interfaces;
+using SurveyPro.Infrastructure.Persistence;
+using System.Security.Cryptography;
 
 /// <summary>
 /// Survey use-case service.
@@ -19,13 +22,16 @@ public sealed class SurveyService : ISurveyService
 {
     private readonly ISurveyRepository surveyRepository;
     private readonly ILogger<SurveyService> logger;
+    private readonly SurveyProDbContext? dbContext;
 
     public SurveyService(
         ISurveyRepository surveyRepository,
-        ILogger<SurveyService> logger)
+        ILogger<SurveyService> logger,
+        SurveyProDbContext? dbContext = null)
     {
         this.surveyRepository = surveyRepository;
         this.logger = logger;
+        this.dbContext = dbContext;
     }
 
     public async Task<Result<Guid>> CreateAsync(
@@ -56,6 +62,11 @@ public sealed class SurveyService : ISurveyService
 
         await surveyRepository.AddAsync(survey, cancellationToken);
 
+        if (this.dbContext != null)
+        {
+            await this.EnsureSurveySessionAsync(survey, cancellationToken);
+        }
+
         logger.LogInformation(
             "Survey {SurveyId} created by author {AuthorId}",
             survey.Id,
@@ -74,14 +85,16 @@ public sealed class SurveyService : ISurveyService
         }
 
         var surveys = await surveyRepository.GetByAuthorIdAsync(authorId, cancellationToken);
-        return Result<IReadOnlyCollection<SurveyListItemDto>>.Success(MapToList(surveys));
+        return Result<IReadOnlyCollection<SurveyListItemDto>>.Success(
+            await this.MapToListAsync(surveys, cancellationToken));
     }
 
     public async Task<Result<IReadOnlyCollection<SurveyListItemDto>>> GetPublicSurveysAsync(
         CancellationToken cancellationToken)
     {
         var surveys = await surveyRepository.GetPublicAsync(cancellationToken);
-        return Result<IReadOnlyCollection<SurveyListItemDto>>.Success(MapToList(surveys));
+        return Result<IReadOnlyCollection<SurveyListItemDto>>.Success(
+            await this.MapToListAsync(surveys, cancellationToken));
     }
 
     public async Task<Result> PublishAsync(Guid surveyId, Guid authorId, CancellationToken cancellationToken)
@@ -141,6 +154,12 @@ public sealed class SurveyService : ISurveyService
             return Result<SurveyListItemDto>.Failure("Access denied.");
         }
 
+        var accessCode = string.Empty;
+        if (this.dbContext != null)
+        {
+            accessCode = await this.GetAccessCodeAsync(survey.Id, cancellationToken);
+        }
+
         return Result<SurveyListItemDto>.Success(new SurveyListItemDto
         {
             Id = survey.Id,
@@ -149,6 +168,7 @@ public sealed class SurveyService : ISurveyService
             Status = survey.Status,
             IsPublic = survey.IsPublic,
             CreatedAt = survey.CreatedAt,
+            AccessCode = accessCode,
         });
     }
 
@@ -186,9 +206,14 @@ public sealed class SurveyService : ISurveyService
         return Result.Success();
     }
 
-    private static IReadOnlyCollection<SurveyListItemDto> MapToList(IEnumerable<Survey> surveys)
+    private async Task<IReadOnlyCollection<SurveyListItemDto>> MapToListAsync(
+        IEnumerable<Survey> surveys,
+        CancellationToken cancellationToken)
     {
-        return surveys
+        var surveyList = surveys.ToList();
+        var accessCodes = await this.LoadAccessCodesAsync(surveyList.Select(s => s.Id), cancellationToken);
+
+        return surveyList
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => new SurveyListItemDto
             {
@@ -198,7 +223,119 @@ public sealed class SurveyService : ISurveyService
                 Status = s.Status,
                 IsPublic = s.IsPublic,
                 CreatedAt = s.CreatedAt,
+                AccessCode = accessCodes.TryGetValue(s.Id, out var code) ? code : string.Empty,
             })
             .ToList();
+    }
+
+    private async Task<string> GetAccessCodeAsync(Guid surveyId, CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return string.Empty;
+        }
+
+        var code = await this.dbContext.SurveySessions
+            .Where(session => session.SurveyId == surveyId && session.IsActive)
+            .Select(session => session.AccessCode)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return code ?? string.Empty;
+    }
+
+    private async Task<Dictionary<Guid, string>> LoadAccessCodesAsync(
+        IEnumerable<Guid> surveyIds,
+        CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        var ids = surveyIds.Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return new Dictionary<Guid, string>();
+        }
+
+        var sessions = await this.dbContext.SurveySessions
+            .AsNoTracking()
+            .Where(session => ids.Contains(session.SurveyId) && session.IsActive)
+            .ToListAsync(cancellationToken);
+
+        return sessions
+            .GroupBy(session => session.SurveyId)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .OrderByDescending(session => session.CreatedAt)
+                    .Select(session => session.AccessCode)
+                    .FirstOrDefault() ?? string.Empty);
+    }
+
+    private async Task EnsureSurveySessionAsync(Survey survey, CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return;
+        }
+
+        var existingSession = await this.dbContext.SurveySessions
+            .FirstOrDefaultAsync(session => session.SurveyId == survey.Id && session.IsActive, cancellationToken);
+
+        if (existingSession != null)
+        {
+            return;
+        }
+
+        var accessCode = await this.GenerateUniqueAccessCodeAsync(cancellationToken);
+
+        await this.dbContext.SurveySessions.AddAsync(
+            new SurveySession
+            {
+                Id = Guid.NewGuid(),
+                SurveyId = survey.Id,
+                AccessCode = accessCode,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+            },
+            cancellationToken);
+
+        await this.dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<string> GenerateUniqueAccessCodeAsync(CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return string.Empty;
+        }
+
+        while (true)
+        {
+            var code = this.GenerateAccessCode();
+
+            var exists = await this.dbContext.SurveySessions
+                .AnyAsync(session => session.AccessCode == code, cancellationToken);
+
+            if (!exists)
+            {
+                return code;
+            }
+        }
+    }
+
+    private string GenerateAccessCode()
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var bytes = RandomNumberGenerator.GetBytes(8);
+
+        var characters = new char[8];
+        for (var i = 0; i < characters.Length; i++)
+        {
+            characters[i] = alphabet[bytes[i] % alphabet.Length];
+        }
+
+        return new string(characters);
     }
 }

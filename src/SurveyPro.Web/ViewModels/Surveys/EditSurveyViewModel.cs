@@ -14,6 +14,8 @@ public sealed class EditSurveyViewModel
 {
     public Guid Id { get; set; }
 
+    public string AccessCode { get; set; } = string.Empty;
+
     [Required]
     [MaxLength(200)]
     [Display(Name = "Name")]
