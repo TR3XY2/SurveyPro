@@ -138,6 +138,30 @@ public sealed class ParticipationController : BaseController
         return Ok();
     }
 
+    [Authorize(Roles = "Respondent")]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Submit(string accessCode, Guid surveyId, CancellationToken ct)
+    {
+        var userId = this.GetCurrentUserId();
+        if (userId.IsFailure)
+        {
+            return this.RedirectToAction("Login", "Account");
+        }
+
+        var result = await this.surveyParticipationService.SubmitAsync(
+            userId.Value, accessCode, surveyId, ct);
+
+        if (result.IsFailure)
+        {
+            TempData["ErrorMessage"] = result.Error;
+            return this.RedirectToAction(nameof(this.Join), new { code = accessCode });
+        }
+
+        TempData["SuccessMessage"] = "Your answers have been submitted!";
+        return this.RedirectToAction(nameof(this.Join), new { code = accessCode });
+    }
+
     private SurveyParticipationViewModel MapToViewModel(SurveyParticipationDto dto)
     {
         var draftAnswers = dto.DraftAnswers.ToDictionary(answer => answer.QuestionId);
@@ -149,6 +173,7 @@ public sealed class ParticipationController : BaseController
             Title = dto.Title,
             Description = dto.Description,
             IsPublic = dto.IsPublic,
+            IsSubmitted = dto.IsSubmitted,
             Questions = dto.Questions
                 .OrderBy(question => question.OrderNumber)
                 .Select(question =>
@@ -161,6 +186,7 @@ public sealed class ParticipationController : BaseController
                         Text = question.Text,
                         Type = question.Type,
                         OrderNumber = question.OrderNumber,
+
                         Options = question.Options
                             .Select(option => new ParticipationOptionViewModel
                             {

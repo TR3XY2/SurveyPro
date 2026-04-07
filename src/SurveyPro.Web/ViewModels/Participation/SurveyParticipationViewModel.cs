@@ -17,4 +17,6 @@ public sealed class SurveyParticipationViewModel
     public bool IsPublic { get; set; }
 
     public List<ParticipationQuestionViewModel> Questions { get; set; } = new ();
+
+    public bool IsSubmitted { get; set; }
 }

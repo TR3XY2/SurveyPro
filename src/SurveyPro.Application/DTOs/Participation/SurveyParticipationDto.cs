@@ -22,4 +22,6 @@ public sealed class SurveyParticipationDto
     public IReadOnlyCollection<ParticipationQuestionDto> Questions { get; set; } = Array.Empty<ParticipationQuestionDto>();
 
     public IReadOnlyCollection<ParticipationAnswerDto> DraftAnswers { get; set; } = Array.Empty<ParticipationAnswerDto>();
+
+    public bool IsSubmitted { get; set; }
 }
