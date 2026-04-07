@@ -83,6 +83,31 @@ public sealed class ParticipationController : BaseController
 
     [Authorize(Roles = "Respondent")]
     [HttpPost]
+    public async Task<IActionResult> Clear(string code, CancellationToken ct)
+    {
+        var userId = this.GetCurrentUserId();
+
+        if (userId.IsFailure)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+
+        var result = await this.surveyParticipationService.ClearDraftAsync(userId.Value, code, ct);
+
+        if (result.IsFailure)
+        {
+            TempData["ErrorMessage"] = result.Error;
+        }
+        else
+        {
+            TempData["SuccessMessage"] = "All answers cleared.";
+        }
+
+        return RedirectToAction(nameof(this.Join), new { code });
+    }
+
+    [Authorize(Roles = "Respondent")]
+    [HttpPost]
     public async Task<IActionResult> SaveDraft([FromBody] SurveyParticipationViewModel model, CancellationToken cancellationToken)
     {
         var userId = this.GetCurrentUserId();

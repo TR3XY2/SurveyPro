@@ -124,6 +124,41 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
         return Result.Success();
     }
 
+    public async Task<Result> ClearDraftAsync(Guid userId, string accessCode, CancellationToken ct)
+    {
+        var session = await this.GetActiveSessionByCodeAsync(accessCode, ct);
+
+        if (session == null)
+        {
+            return Result.Failure("Survey not found.");
+        }
+
+        var participant = await this.dbContext.SessionParticipants
+            .FirstOrDefaultAsync(p => p.SessionId == session.Id && p.UserId == userId, ct);
+
+        if (participant == null)
+        {
+            return Result.Success(); // нічого чистити
+        }
+
+        var draft = await this.dbContext.Responses
+            .Include(r => r.Answers)
+            .FirstOrDefaultAsync(
+                r => r.SessionParticipantId == participant.Id && r.IsDraft,
+                ct);
+
+        if (draft == null)
+        {
+            return Result.Success();
+        }
+
+        this.dbContext.ResponseAnswers.RemoveRange(draft.Answers);
+
+        await this.dbContext.SaveChangesAsync(ct);
+
+        return Result.Success();
+    }
+
     private static Result ValidateSaveDraftRequest(Guid userId, SaveDraftRequestDto request)
     {
         if (userId == Guid.Empty)

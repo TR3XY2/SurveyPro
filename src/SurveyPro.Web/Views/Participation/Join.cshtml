@@ -33,6 +33,13 @@
     </div>
 }
 
+<form asp-action="Clear" method="post" class="mb-3">
+    <input type="hidden" name="code" value="@Model.AccessCode" />
+    <button type="submit" class="btn btn-danger">
+        Clear all answers
+    </button>
+</form>
+
 <form asp-action="Join" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="SurveyId" />
@@ -49,6 +56,7 @@
                 @if (question.Type == "Text")
                 {
                     <textarea asp-for="Questions[i].TextAnswer" class="form-control" rows="4"></textarea>
+                    <button type="button" class="btn btn-sm btn-outline-danger mt-2" onclick="clearText(@i)"> Clear </button>
                 }
                 else if (question.Type == "MultipleChoice")
                 {
@@ -76,6 +84,11 @@
                             </div>
                         }
                     </div>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger mt-2"
+                            onclick="clearCheckbox(@i)">
+                        Clear
+                    </button>
                 }
                 else
                 {
@@ -103,6 +116,11 @@
                             </div>
                         }
                     </div>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger mt-2"
+                            onclick="clearRadio(@i)">
+                        Clear
+                    </button>
                 }
 
                 <input type="hidden" asp-for="Questions[i].QuestionId" />
@@ -119,8 +137,23 @@
     </div>
 </form>
 <script>
-    let timeout = null;
+        
+    function clearText(i) {
+        document.querySelector(`[name="Questions[${i}].TextAnswer"]`).value = '';
+    }
+    
+    function clearRadio(i) {
+        document.querySelectorAll(`[name="Questions[${i}].SelectedOptionId"]`)
+            .forEach(x => x.checked = false);
+    }
+    
+    function clearCheckbox(i) {
+        document.querySelectorAll(`[name="Questions[${i}].SelectedOptionIds"]`)
+            .forEach(x => x.checked = false);
+    }
 
+    let timeout = null;
+    
     function collectFormData() {
         const questions = [];
 
@@ -210,7 +243,7 @@
         }, 1500);
     }
 
-    // ñëóõàºìî ÂÑ² çì³íè
+    // Ã±Ã«Ã³ÃµÃ ÂºÃ¬Ã® Ã‚Ã‘Â² Ã§Ã¬Â³Ã­Ã¨
     document.querySelectorAll('textarea, input').forEach(el => {
         el.addEventListener('input', autoSave);
         el.addEventListener('change', autoSave);

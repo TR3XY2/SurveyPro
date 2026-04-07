@@ -15,4 +15,6 @@ public interface ISurveyParticipationService
     Task<Result<SurveyParticipationDto>> GetByCodeAsync(string code, Guid? userId, CancellationToken cancellationToken);
 
     Task<Result> SaveDraftAsync(Guid userId, SaveDraftRequestDto request, CancellationToken cancellationToken);
+
+    Task<Result> ClearDraftAsync(Guid userId, string accessCode, CancellationToken ct);
 }
