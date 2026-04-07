@@ -17,4 +17,6 @@ public interface ISurveyParticipationService
     Task<Result> SaveDraftAsync(Guid userId, SaveDraftRequestDto request, CancellationToken cancellationToken);
 
     Task<Result> ClearDraftAsync(Guid userId, string accessCode, CancellationToken ct);
+
+    Task<Result> SubmitAsync(Guid userId, string accessCode, Guid surveyId, CancellationToken ct);
 }

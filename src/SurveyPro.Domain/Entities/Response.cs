@@ -19,4 +19,6 @@ public class Response
     public bool IsDraft { get; set; }
 
     public ICollection<ResponseAnswer> Answers { get; set; } = new List<ResponseAnswer>();
+
+    public DateTime? SubmittedAt { get; set; }
 }
