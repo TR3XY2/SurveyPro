@@ -138,21 +138,35 @@
 </form>
 <script>
         
-    function clearText(i) {
-        document.querySelector(`[name="Questions[${i}].TextAnswer"]`).value = '';
+        function clearText(i) {
+        const el = document.querySelector(`[name="Questions[${i}].TextAnswer"]`);
+        el.value = '';
+    
+        // 🔥 тригеримо autosave
+        el.dispatchEvent(new Event('input'));
     }
     
     function clearRadio(i) {
         document.querySelectorAll(`[name="Questions[${i}].SelectedOptionId"]`)
-            .forEach(x => x.checked = false);
-    }
+            .forEach(x => {
+                x.checked = false;
     
-    function clearCheckbox(i) {
-        document.querySelectorAll(`[name="Questions[${i}].SelectedOptionIds"]`)
-            .forEach(x => x.checked = false);
+                // 🔥 тригер
+                x.dispatchEvent(new Event('change'));
+            });
     }
 
-    let timeout = null;
+    function clearCheckbox(i) {
+        document.querySelectorAll(`[name="Questions[${i}].SelectedOptionIds"]`)
+            .forEach(x => {
+                x.checked = false;
+    
+                // 🔥 тригер
+                x.dispatchEvent(new Event('change'));
+            });
+    }
+    
+        let timeout = null;
     
     function collectFormData() {
         const questions = [];
