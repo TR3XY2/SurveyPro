@@ -143,3 +143,134 @@ else
         }
     </div>
 }
+
+@if (Model.Responses.Any())
+{
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+    var questionGroups = Model.Responses
+        .SelectMany(r => r.Answers)
+        .GroupBy(a => new { a.QuestionId, a.QuestionText, a.QuestionType, a.QuestionOrderNumber })
+        .OrderBy(g => g.Key.QuestionOrderNumber)
+        .ToList();
+
+    <h2 class="mb-3 mt-5">Answer charts</h2>
+
+    <div class="row g-4">
+        @foreach (var group in questionGroups)
+        {
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100 bg-light bg-opacity-25"
+                    style="background: linear-gradient(135deg, rgba(91, 141, 239, 0.3), rgba(91, 141, 239, 0.15));">
+                    <div class="card-body">
+                        <h6 class="mb-1" style="font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: white;">
+                            QUESTION @group.Key.QuestionOrderNumber
+                        </h6>
+                        <p class="fw-semibold mb-3" style="font-size: 15px; color: white;">@group.Key.QuestionText</p>
+
+                        @{
+                            var optionCounts = group
+                                .Where(a => a.SelectedOptionTexts.Any())
+                                .SelectMany(a => a.SelectedOptionTexts)
+                                .GroupBy(t => t)
+                                .Select(g => new { Label = g.Key, Count = g.Count() })
+                                .OrderByDescending(x => x.Count)
+                                .ToList();
+
+                            var total = optionCounts.Sum(x => x.Count);
+                            var chartId = $"chart_{group.Key.QuestionId:N}";
+
+                            var palette = new[]
+                            {
+                                "#9585de", "#de8eae", "#f4845f", "#a78bfa",
+                                "#dea78e", "#add64d", "#f87171", "#60a5fa",
+                                "#ec4899", "#fb923c", "#8b5cf6", "#10b981"
+                            };
+
+                            var labelsJson = System.Text.Json.JsonSerializer.Serialize(
+                                optionCounts.Select(x => x.Label).ToArray());
+                            var countsJson = System.Text.Json.JsonSerializer.Serialize(
+                                optionCounts.Select(x => x.Count).ToArray());
+                            var colorsJson = System.Text.Json.JsonSerializer.Serialize(
+                                optionCounts.Select((_, i) => palette[i % palette.Length]).ToArray());
+                        }
+
+                        @if (group.Key.QuestionType == "Text")
+                        {
+                            <div class="d-flex align-items-center justify-content-center text-light"
+                                 style="height: 180px; border: 1.5px dashed #ffffff; border-radius: 8px; flex-direction: column; gap: 8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" opacity=".5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                                <span style="font-size: 13px;">Charts cannot be built for text answers</span>
+                            </div>
+                        }
+                        else if (!optionCounts.Any())
+                        {
+                            <div class="d-flex align-items-center justify-content-center text-light"
+                                 style="height: 180px; font-size: 13px;">
+                                No answers yet
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+                                @for (int i = 0; i < optionCounts.Count; i++)
+                                {
+                                    var pct = total > 0 ? Math.Round(optionCounts[i].Count * 100.0 / total) : 0;
+                                    <span style="display: flex; align-items-center; gap: 5px; font-size: 13px; color: #ddd;">
+                                        <span style="width: 12px; height: 12px; border-radius: 3px; background: @palette[i % palette.Length]; display: inline-block; flex-shrink: 0;"></span>
+                                        @optionCounts[i].Label — @pct%
+                                    </span>
+                                }
+                            </div>
+
+                            <div style="position: relative; width: 100%; height: 260px;">
+                                <canvas id="@chartId"
+                                        role="img"
+                                        aria-label="Pie chart for question: @group.Key.QuestionText">
+                                </canvas>
+                            </div>
+
+                            <script>
+                                (function () {
+                                    var ctx = document.getElementById('@chartId');
+                                    if (!ctx) return;
+                                    new Chart(ctx, {
+                                        type: 'pie',
+                                        data: {
+                                            labels: @Html.Raw(labelsJson),
+                                            datasets: [{
+                                                data: @Html.Raw(countsJson),
+                                                backgroundColor: @Html.Raw(colorsJson),
+                                                borderWidth: 2,
+                                                borderColor: '#111827'
+                                            }]
+                                        },
+                                        options: {
+                                            responsive: true,
+                                            maintainAspectRatio: false,
+                                            plugins: {
+                                                legend: { display: false },
+                                                tooltip: {
+                                                    callbacks: {
+                                                        label: function (ctx) {
+                                                            var total = ctx.dataset.data.reduce(function (a, b) { return a + b; }, 0);
+                                                            var pct = total > 0 ? Math.round(ctx.parsed / total * 100) : 0;
+                                                            return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                                })();
+                            </script>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
