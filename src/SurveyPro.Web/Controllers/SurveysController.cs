@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using SurveyPro.Application.DTOs.Surveys;
 using SurveyPro.Application.Interfaces;
 using SurveyPro.Web.ViewModels.Surveys;
+using SurveyPro.Web.Services;
 
 /// <summary>
 /// Surveys user flows.
@@ -69,6 +70,38 @@ public class SurveysController : BaseController
     public IActionResult Create()
     {
         return View(new CreateSurveyViewModel());
+    }
+
+    [Authorize(Roles = "Author,Admin")]
+    [HttpGet]
+    public async Task<IActionResult> ExportResponsesCsv(Guid id, CancellationToken cancellationToken)
+    {
+        var currentUserId = this.GetCurrentUserId();
+        if (currentUserId.IsFailure)
+        {
+            return this.RedirectToAction("Login", "Account");
+        }
+
+        var result = await this.surveyService.GetSurveyResponsesAsync(
+            id,
+            currentUserId.Value,
+            this.User.IsInRole("Admin"),
+            cancellationToken);
+
+        if (result.IsFailure)
+        {
+            TempData["ErrorMessage"] = result.Error;
+            return this.RedirectToAction(nameof(this.Responses), new { id });
+        }
+
+        var viewModel = this.MapToResponsesViewModel(result.Value!);
+
+        var csvBytes = SurveyCsvExporter.GenerateResponsesCsv(viewModel);
+
+        return File(
+            csvBytes,
+            "text/csv",
+            $"SurveyResults_{viewModel.SurveyTitle}_{DateTime.UtcNow:yyyyMMddHHmmss}.csv");
     }
 
     [Authorize(Roles = "Author")]

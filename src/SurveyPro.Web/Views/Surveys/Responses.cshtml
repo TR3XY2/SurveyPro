@@ -21,8 +21,13 @@
                class="btn btn-danger">
                 Export to PDF
             </a>
-        }
 
+            <a asp-action="ExportResponsesCsv"
+               asp-route-id="@Model.SurveyId"
+               class="btn btn-success">
+                Export to CSV
+            </a>
+        }
         @if (User.IsInRole("Author"))
         {
             <a asp-action="My" class="btn btn-outline-secondary">Back to my surveys</a>
