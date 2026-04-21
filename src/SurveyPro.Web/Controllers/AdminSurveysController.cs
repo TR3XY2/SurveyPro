@@ -1,0 +1,72 @@
+// <copyright file="AdminSurveysController.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
+
+namespace SurveyPro.Web.Controllers;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SurveyPro.Application.Interfaces;
+
+/// <summary>
+/// Admin controller for managing all surveys regardless of visibility.
+/// </summary>
+[Authorize(Roles = "Admin")]
+public sealed class AdminSurveysController : Controller
+{
+    private readonly IAdminSurveyService adminSurveyService;
+    private readonly ILogger<AdminSurveysController> logger;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AdminSurveysController"/> class.
+    /// </summary>
+    /// <param name="adminSurveyService">Admin survey service.</param>
+    /// <param name="logger">Logger instance.</param>
+    public AdminSurveysController(
+        IAdminSurveyService adminSurveyService,
+        ILogger<AdminSurveysController> logger)
+    {
+        this.adminSurveyService = adminSurveyService;
+        this.logger = logger;
+    }
+
+    /// <summary>
+    /// Displays all surveys for admin (public and private).
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>All surveys view.</returns>
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    {
+        var surveys = await this.adminSurveyService.GetAllSurveysAsync(cancellationToken);
+
+        this.logger.LogInformation(
+            "Admin opened all surveys management page. Surveys count: {Count}",
+            surveys.Count);
+
+        return this.View(surveys);
+    }
+
+    /// <summary>
+    /// Deletes any survey (admin only).
+    /// </summary>
+    /// <param name="id">Survey identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Redirect to index.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var deleted = await this.adminSurveyService.DeleteSurveyAsync(id, cancellationToken);
+
+        if (deleted)
+        {
+            TempData["SuccessMessage"] = "Survey deleted successfully.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Survey not found.";
+        }
+
+        return this.RedirectToAction(nameof(this.Index));
+    }
+}

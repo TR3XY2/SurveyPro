@@ -70,6 +70,7 @@ public class Program
         builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
         builder.Services.AddScoped<IQuestionService, QuestionService>();
         builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+        builder.Services.AddScoped<IAdminSurveyService, AdminSurveyService>();
 
         var app = builder.Build();
 
