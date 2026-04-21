@@ -50,4 +50,11 @@ public sealed class AdminUsersController : Controller
         await adminUserService.BlockUserAsync(id, ct);
         return RedirectToAction("Index");
     }
+
+    [HttpPost]
+    public async Task<IActionResult> Unblock(string id, CancellationToken ct)
+    {
+        await adminUserService.UnblockUserAsync(id, ct);
+        return RedirectToAction("Index");
+    }
 }

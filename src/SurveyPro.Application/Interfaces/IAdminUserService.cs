@@ -19,4 +19,6 @@ public interface IAdminUserService
     Task<IReadOnlyCollection<AdminUserListItemDto>> GetUsersAsync(CancellationToken cancellationToken);
 
     Task BlockUserAsync(string userId, CancellationToken cancellationToken);
+
+    Task UnblockUserAsync(string userId, CancellationToken cancellationToken);
 }

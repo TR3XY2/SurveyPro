@@ -115,4 +115,27 @@ public sealed class AdminUserService : IAdminUserService
 
         this.logger.LogInformation("User {UserId} was blocked", userId);
     }
+
+    public async Task UnblockUserAsync(string userId, CancellationToken cancellationToken)
+    {
+        var user = await this.userManager.FindByIdAsync(userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        user.IsBlocked = false;
+
+        var result = await this.userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException("Failed to unblock user");
+        }
+
+        this.memoryCache.Remove(UsersCacheKey);
+
+        this.logger.LogInformation("User {UserId} was unblocked", userId);
+    }
 }
