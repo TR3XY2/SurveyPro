@@ -1,4 +1,4 @@
-@model IReadOnlyCollection<SurveyPro.Application.DTOs.Users.AdminUserListItemDto>
+﻿@model IReadOnlyCollection<SurveyPro.Application.DTOs.Users.AdminUserListItemDto>
 @{
     ViewData["Title"] = "User Management";
     var totalUsers = Model.Count;
@@ -79,6 +79,28 @@
                             </td>
                             <td>@user.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                             <td><code>@user.Id</code></td>
+
+                            <!-- 🔴 НОВА КОЛОНКА -->
+                            <td>
+                                @if (user.IsBlocked)
+                                {
+                                    <form asp-action="Unblock" asp-controller="AdminUsers" method="post">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            Unblock
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Block" asp-controller="AdminUsers" method="post">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            Block
+                                        </button>
+                                    </form>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>

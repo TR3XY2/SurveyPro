@@ -43,4 +43,11 @@ public sealed class AdminUsersController : Controller
         this.logger.LogInformation("Admin opened users management page. Users count: {Count}", users.Count);
         return this.View(users);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> Block(string id, CancellationToken ct)
+    {
+        await adminUserService.BlockUserAsync(id, ct);
+        return RedirectToAction("Index");
+    }
 }

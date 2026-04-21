@@ -17,4 +17,6 @@ public interface IAdminUserService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>User list.</returns>
     Task<IReadOnlyCollection<AdminUserListItemDto>> GetUsersAsync(CancellationToken cancellationToken);
+
+    Task BlockUserAsync(string userId, CancellationToken cancellationToken);
 }

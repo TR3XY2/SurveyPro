@@ -92,4 +92,27 @@ public sealed class AdminUserService : IAdminUserService
 
         return result;
     }
+
+    public async Task BlockUserAsync(string userId, CancellationToken cancellationToken)
+    {
+        var user = await this.userManager.FindByIdAsync(userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        user.IsBlocked = true;
+
+        var result = await this.userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException("Failed to block user");
+        }
+
+        this.memoryCache.Remove(UsersCacheKey);
+
+        this.logger.LogInformation("User {UserId} was blocked", userId);
+    }
 }

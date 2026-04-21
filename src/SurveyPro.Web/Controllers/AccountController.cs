@@ -254,6 +254,12 @@ public class AccountController : Controller
             return View(model);
         }
 
+        if (user.IsBlocked)
+        {
+            ModelState.AddModelError(string.Empty, "Your account is blocked");
+            return View(model);
+        }
+
         var result = await this.signInManager.PasswordSignInAsync(
             user.UserName,
             model.Password,
