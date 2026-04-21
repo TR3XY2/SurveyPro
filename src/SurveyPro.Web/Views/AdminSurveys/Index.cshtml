@@ -1,0 +1,200 @@
+@model IReadOnlyCollection<SurveyPro.Application.DTOs.Surveys.AdminSurveyListItemDto>
+@using SurveyPro.Domain.Enums
+
+@{
+    ViewData["Title"] = "All Surveys";
+    var total = Model.Count;
+    var published = Model.Count(s => s.Status == SurveyStatuses.Published);
+    var publicCount = Model.Count(s => s.IsPublic);
+    var privateCount = total - publicCount;
+}
+
+<section class="admin-users-hero mb-4">
+    <div class="admin-users-hero__overlay"></div>
+    <div class="admin-users-hero__content">
+        <h1 class="display-5 fw-bold mb-2">All Surveys</h1>
+        <p class="lead mb-4">Administrator dashboard for managing all surveys — public and private.</p>
+
+        <div class="row g-3">
+            <div class="col-sm-4">
+                <div class="admin-stat">
+                    <span class="admin-stat__label">Total</span>
+                    <span class="admin-stat__value">@total</span>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="admin-stat">
+                    <span class="admin-stat__label">Published</span>
+                    <span class="admin-stat__value">@published</span>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="admin-stat">
+                    <span class="admin-stat__label">Private</span>
+                    <span class="admin-stat__value">@privateCount</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="card border-0 shadow-lg admin-users-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0 admin-users-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Status</th>
+                        <th>Visibility</th>
+                        <th>Questions</th>
+                        <th>Responses</th>
+                        <th>Access Code</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                @foreach (var survey in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">
+                            @survey.Title
+                        </td>
+
+                        <td>
+                            <div class="fw-semibold">@survey.AuthorName</div>
+                            <div class="text-muted small">@survey.AuthorEmail</div>
+                        </td>
+
+                        <td>
+                            @if (survey.Status == SurveyStatuses.Published)
+                            {
+                                <span class="badge text-bg-success">Published</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Draft</span>
+                            }
+                        </td>
+
+                        <td>
+                            @if (survey.IsPublic)
+                            {
+                                <span class="badge text-bg-info">Public</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-warning text-dark">Private</span>
+                            }
+                        </td>
+
+                        <td class="text-center">@survey.QuestionCount</td>
+                        <td class="text-center">@survey.ResponseCount</td>
+
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(survey.AccessCode))
+                            {
+                                <code>@survey.AccessCode</code>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+
+                        <td>
+                            @survey.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                        </td>
+
+                        <td>
+                            <div class="d-flex gap-2 flex-wrap">
+
+                                @if (!string.IsNullOrWhiteSpace(survey.AccessCode))
+                                {
+                                    <a asp-controller="Surveys"
+                                       asp-action="Responses"
+                                       asp-route-id="@survey.Id"
+                                       class="btn btn-outline-info btn-sm">
+                                        Responses
+                                    </a>
+                                }
+
+                                <!-- DELETE BUTTON -->
+                                <button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal"
+                                        data-id="@survey.Id"
+                                        data-title="@survey.Title">
+                                    Delete
+                                </button>
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                Are you sure you want to delete:
+                <br />
+                <strong id="surveyTitle"></strong>?
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <form asp-controller="AdminSurveys"
+                      asp-action="Delete"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="surveyId" />
+
+                    <button type="submit" class="btn btn-danger">
+                        Delete
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT -->
+<script>
+const deleteModal = document.getElementById('deleteModal');
+
+deleteModal.addEventListener('show.bs.modal', function (event) {
+
+    const button = event.relatedTarget;
+
+    const id = button.getAttribute('data-id');
+    const title = button.getAttribute('data-title');
+
+    document.getElementById('surveyId').value = id;
+    document.getElementById('surveyTitle').textContent = title;
+});
+</script>
