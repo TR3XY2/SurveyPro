@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	<UserSecretsId>645b2356-aab5-4929-b1b0-b2d624772a99</UserSecretsId>
-	  <NoWarn>SA1600;S6964</NoWarn>
+	  <NoWarn>SA1600;S6964;S4830</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

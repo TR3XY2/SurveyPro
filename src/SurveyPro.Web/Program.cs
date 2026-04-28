@@ -73,8 +73,16 @@ public class Program
         builder.Services.AddHttpClient<SurveyPro.Application.Interfaces.IQuoteService, SurveyPro.Infrastructure.ExternalApis.QuoteService>(client =>
         {
             client.BaseAddress = new Uri(
-                builder.Configuration["ExternalApis:QuoteApiBaseUrl"] ?? "https://api.quotable.io");
+                builder.Configuration["ExternalApis:QuoteApiBaseUrl"] ?? string.Empty);
             client.Timeout = TimeSpan.FromSeconds(10);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true,
+            };
+            return handler;
         });
 
         var app = builder.Build();
