@@ -92,4 +92,24 @@ public sealed class AdminSurveysController : Controller
 
         return this.View(result.Value!);
     }
+
+    /// <summary>
+    /// Shows all submitted participant responses for selected survey.
+    /// </summary>
+    /// <param name="id">Survey identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Responses view.</returns>
+    [RateLimit(15)]
+    [HttpGet]
+    public async Task<IActionResult> Responses(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await this.adminSurveyService.GetSurveyResponsesAsync(id, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return this.Content("ERROR: " + result.Error);
+        }
+
+        return this.View(result.Value!);
+    }
 }

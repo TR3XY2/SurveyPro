@@ -142,5 +142,11 @@
 </section>
 
 <div class="mt-3 d-flex gap-2 flex-wrap">
-    <a asp-action="Index" class="btn btn-outline-secondary">Back to surveys</a>
+    <a asp-action="Responses" asp-route-id="@Model.SurveyId" class="btn btn-primary">
+        View Responses
+    </a>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        Back to surveys
+    </a>
 </div>

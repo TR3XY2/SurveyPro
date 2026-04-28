@@ -143,4 +143,73 @@ public sealed class AdminSurveyService : IAdminSurveyService
                 .ToList(),
         });
     }
+
+    /// <inheritdoc/>
+    public async Task<Result<AdminSurveyResponsesDto>> GetSurveyResponsesAsync(Guid surveyId, CancellationToken cancellationToken)
+    {
+        var survey = await this.dbContext.Surveys
+            .AsNoTracking()
+            .Include(s => s.Sessions)
+                .ThenInclude(session => session.Participants)
+                    .ThenInclude(participant => participant.Responses)
+                        .ThenInclude(response => response.Answers)
+                            .ThenInclude(answer => answer.Question)
+            .Include(s => s.Sessions)
+                .ThenInclude(session => session.Participants)
+                    .ThenInclude(participant => participant.Responses)
+                        .ThenInclude(response => response.Answers)
+                            .ThenInclude(answer => answer.Option)
+            .Include(s => s.Sessions)
+                .ThenInclude(session => session.Participants)
+                    .ThenInclude(participant => participant.User)
+            .FirstOrDefaultAsync(s => s.Id == surveyId, cancellationToken);
+
+        if (survey == null)
+        {
+            return Result<AdminSurveyResponsesDto>.Failure("Survey not found.");
+        }
+
+        var participants = survey.Sessions
+            .SelectMany(session => session.Participants)
+            .Where(participant => participant.Responses.Any(r => !r.IsDraft))
+            .Select(participant =>
+            {
+                var latestResponse = participant.Responses
+                    .Where(r => !r.IsDraft)
+                    .OrderByDescending(r => r.SubmittedAt ?? r.CreatedAt)
+                    .First();
+
+                return new AdminParticipantResponseDto
+                {
+                    ParticipantId = participant.Id,
+                    ParticipantName = participant.User?.Name ?? "Anonymous",
+                    SubmittedAt = latestResponse.SubmittedAt ?? latestResponse.CreatedAt,
+
+                    Answers = latestResponse.Answers
+                        .OrderBy(a => a.Question.OrderNumber)
+                        .Select(a => new AdminQuestionAnswerDto
+                        {
+                            QuestionId = a.QuestionId,
+                            QuestionText = a.Question.Text,
+                            QuestionType = a.Question.Type.ToString(),
+                            Answer = !string.IsNullOrWhiteSpace(a.TextAnswer)
+                                ? a.TextAnswer
+                                : a.Option != null
+                                    ? a.Option.Text
+                                    : "No answer",
+                        })
+                        .ToList(),
+                };
+            })
+            .OrderByDescending(p => p.SubmittedAt)
+            .ToList();
+
+        return Result<AdminSurveyResponsesDto>.Success(new AdminSurveyResponsesDto
+        {
+            SurveyId = survey.Id,
+            SurveyTitle = survey.Title,
+            TotalParticipants = participants.Count,
+            Participants = participants,
+        });
+    }
 }

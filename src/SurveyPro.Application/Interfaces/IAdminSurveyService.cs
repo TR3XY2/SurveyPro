@@ -34,4 +34,6 @@ public interface IAdminSurveyService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Survey question payload.</returns>
     Task<Result<AdminSurveyQuestionsDto>> GetSurveyQuestionsAsync(Guid surveyId, CancellationToken cancellationToken);
+
+    Task<Result<AdminSurveyResponsesDto>> GetSurveyResponsesAsync(Guid surveyId, CancellationToken cancellationToken);
 }
