@@ -36,7 +36,6 @@ public class Program
             .Enrich.WithProperty("Application", "SurveyPro")
             .WriteTo.Console()
             .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
-            .WriteTo.Seq("http://localhost:5341")
             .CreateLogger();
 
         builder.Host.UseSerilog();
@@ -75,7 +74,7 @@ public class Program
         {
             client.BaseAddress = new Uri(
                 builder.Configuration["ExternalApis:QuoteApiBaseUrl"] ?? "https://api.quotable.io");
-            client.Timeout = TimeSpan.FromSeconds(5);
+            client.Timeout = TimeSpan.FromSeconds(10);
         });
 
         var app = builder.Build();
