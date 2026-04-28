@@ -17,6 +17,8 @@ using SurveyPro.Infrastructure.Interfaces;
 /// </summary>
 public sealed class ChartService : IChartService
 {
+    private const string TextQuestionErrorMessage = "Charts and histograms cannot be built for text answers";
+
     private readonly SurveyProDbContext? dbContext;
     private readonly ISurveyRepository surveyRepository;
     private readonly ILogger<ChartService> logger;
@@ -66,7 +68,6 @@ public sealed class ChartService : IChartService
             return Result<AnswerChartsDto>.Failure("Access denied.");
         }
 
-        // Get all submitted responses for this survey
         var submittedResponses = await this.dbContext.Responses
             .AsNoTracking()
             .Where(response => !response.IsDraft)
@@ -93,7 +94,6 @@ public sealed class ChartService : IChartService
                 .Where(a => a.QuestionId == question.Id)
                 .ToList();
 
-            // For text questions, we can't create charts but can create histograms
             if (question.Type == "Text")
             {
                 charts.Add(new ChartDataDto
@@ -103,11 +103,10 @@ public sealed class ChartService : IChartService
                     QuestionType = question.Type,
                     QuestionOrderNumber = question.OrderNumber,
                     CanBeCharted = false,
-                    ErrorMessage = "Charts cannot be built for text answers",
+                    ErrorMessage = TextQuestionErrorMessage,
                     Labels = Array.Empty<ChartDataPoint>(),
                 });
 
-                // Create histogram for text answers
                 var textAnswers = questionAnswers
                     .Where(a => !string.IsNullOrWhiteSpace(a.TextAnswer))
                     .Select(a => a.TextAnswer!)
@@ -117,7 +116,6 @@ public sealed class ChartService : IChartService
             }
             else
             {
-                // For choice-based questions
                 var optionCounts = questionAnswers
                     .Where(a => a.Option != null)
                     .GroupBy(a => a.Option!.Text)
@@ -127,15 +125,6 @@ public sealed class ChartService : IChartService
 
                 var total = optionCounts.Sum(x => x.Count);
 
-                var chartPoints = optionCounts
-                    .Select(x => new ChartDataPoint
-                    {
-                        Label = x.Label,
-                        Count = x.Count,
-                        Percentage = total > 0 ? Math.Round((decimal)x.Count / total * 100, 2) : 0,
-                    })
-                    .ToList();
-
                 charts.Add(new ChartDataDto
                 {
                     QuestionId = question.Id.ToString(),
@@ -143,18 +132,15 @@ public sealed class ChartService : IChartService
                     QuestionType = question.Type,
                     QuestionOrderNumber = question.OrderNumber,
                     CanBeCharted = optionCounts.Any(),
-                    Labels = chartPoints,
+                    Labels = optionCounts
+                        .Select(x => new ChartDataPoint
+                        {
+                            Label = x.Label,
+                            Count = x.Count,
+                            Percentage = total > 0 ? Math.Round((decimal)x.Count / total * 100, 2) : 0,
+                        })
+                        .ToList(),
                 });
-
-                // Create histogram for choice-based answers
-                var histogramBuckets = optionCounts
-                    .Select(x => new HistogramBucket
-                    {
-                        Label = x.Label,
-                        Count = x.Count,
-                        Percentage = total > 0 ? Math.Round((decimal)x.Count / total * 100, 2) : 0,
-                    })
-                    .ToList();
 
                 histograms.Add(new HistogramDataDto
                 {
@@ -162,23 +148,28 @@ public sealed class ChartService : IChartService
                     QuestionText = question.Text,
                     QuestionType = question.Type,
                     QuestionOrderNumber = question.OrderNumber,
-                    CanBeCharted = histogramBuckets.Any(),
-                    Buckets = histogramBuckets,
+                    CanBeCharted = optionCounts.Any(),
                     TotalResponses = total,
+                    Buckets = optionCounts
+                        .Select(x => new HistogramBucket
+                        {
+                            Label = x.Label,
+                            Count = x.Count,
+                            Percentage = total > 0 ? Math.Round((decimal)x.Count / total * 100, 2) : 0,
+                        })
+                        .ToList(),
                 });
             }
         }
 
-        var result = new AnswerChartsDto
+        return Result<AnswerChartsDto>.Success(new AnswerChartsDto
         {
             SurveyId = surveyId,
             SurveyTitle = survey.Title,
             TotalSubmittedResponses = submittedResponses.Count,
             Charts = charts,
             Histograms = histograms,
-        };
-
-        return Result<AnswerChartsDto>.Success(result);
+        });
     }
 
     /// <summary>
@@ -243,37 +234,33 @@ public sealed class ChartService : IChartService
             return Result<HistogramDataDto>.Success(
                 CreateTextHistogram(question.Id, question.Text, question.OrderNumber, textAnswers));
         }
-        else
+
+        var buckets = questionAnswers
+            .Where(a => a.Option != null)
+            .GroupBy(a => a.Option!.Text)
+            .Select(g => new { Label = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        var total = buckets.Sum(x => x.Count);
+
+        return Result<HistogramDataDto>.Success(new HistogramDataDto
         {
-            var buckets = questionAnswers
-                .Where(a => a.Option != null)
-                .GroupBy(a => a.Option!.Text)
-                .Select(g => new { Label = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
-                .ToList();
-
-            var total = buckets.Sum(x => x.Count);
-
-            var histogram = new HistogramDataDto
-            {
-                QuestionId = question.Id.ToString(),
-                QuestionText = question.Text,
-                QuestionType = question.Type,
-                QuestionOrderNumber = question.OrderNumber,
-                CanBeCharted = buckets.Any(),
-                TotalResponses = total,
-                Buckets = buckets
-                    .Select(b => new HistogramBucket
-                    {
-                        Label = b.Label,
-                        Count = b.Count,
-                        Percentage = total > 0 ? Math.Round((decimal)b.Count / total * 100, 2) : 0,
-                    })
-                    .ToList(),
-            };
-
-            return Result<HistogramDataDto>.Success(histogram);
-        }
+            QuestionId = question.Id.ToString(),
+            QuestionText = question.Text,
+            QuestionType = question.Type,
+            QuestionOrderNumber = question.OrderNumber,
+            CanBeCharted = buckets.Any(),
+            TotalResponses = total,
+            Buckets = buckets
+                .Select(b => new HistogramBucket
+                {
+                    Label = b.Label,
+                    Count = b.Count,
+                    Percentage = total > 0 ? Math.Round((decimal)b.Count / total * 100, 2) : 0,
+                })
+                .ToList(),
+        });
     }
 
     private static HistogramDataDto CreateTextHistogram(
@@ -300,11 +287,11 @@ public sealed class ChartService : IChartService
             CanBeCharted = answerCounts.Any(),
             TotalResponses = total,
             Buckets = answerCounts
-                .Select(a => new HistogramBucket
+                .Select(x => new HistogramBucket
                 {
-                    Label = a.Label,
-                    Count = a.Count,
-                    Percentage = total > 0 ? Math.Round((decimal)a.Count / total * 100, 2) : 0,
+                    Label = x.Label,
+                    Count = x.Count,
+                    Percentage = total > 0 ? Math.Round((decimal)x.Count / total * 100, 2) : 0,
                 })
                 .ToList(),
         };
