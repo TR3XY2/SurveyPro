@@ -157,14 +157,24 @@ else
         .OrderBy(g => g.Key.QuestionOrderNumber)
         .ToList();
 
-    <h2 class="mb-3 mt-5">Answer charts</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3 mt-5 flex-wrap gap-2">
+        <h2 class="mb-0">Answer charts</h2>
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="chartType" id="chartTypeChart" value="chart" checked>
+            <label class="btn btn-outline-primary" for="chartTypeChart">Pie Chart</label>
+
+            <input type="radio" class="btn-check" name="chartType" id="chartTypeHistogram" value="histogram">
+            <label class="btn btn-outline-primary" for="chartTypeHistogram">Histogram</label>
+        </div>
+    </div>
 
     <div class="row g-4">
         @foreach (var group in questionGroups)
         {
             <div class="col-md-6">
                 <div class="card border-0 shadow-sm h-100 bg-light bg-opacity-25"
-                     style="background: linear-gradient(135deg, rgba(91, 141, 239, 0.3), rgba(91, 141, 239, 0.15));">
+                     style="background: linear-gradient(135deg, rgba(91, 141, 239, 0.3), rgba(91, 141, 239, 0.15));"
+                     data-question-id="@group.Key.QuestionId" data-question-type="@group.Key.QuestionType">
                     <div class="card-body">
                         <h6 class="mb-1" style="font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: white;">
                             QUESTION @group.Key.QuestionOrderNumber
@@ -215,31 +225,27 @@ else
                         else
                         {
                             <div style="position: relative; width: 100%; height: 260px;">
-                                <canvas id="@chartId"></canvas>
+                                <canvas id="@chartId" class="question-chart"></canvas>
                             </div>
 
                             <script>
                                 (function () {
-                                    var ctx = document.getElementById('@chartId');
-                                    if (!ctx) return;
+                                    // Store chart data globally
+                                    window.chartData = window.chartData || {};
+                                    window.chartInstances = window.chartInstances || {};
+                                    
+                                    window.chartData['@chartId'] = {
+                                        labels: @Html.Raw(labelsJson),
+                                        counts: @Html.Raw(countsJson),
+                                        colors: @Html.Raw(colorsJson)
+                                    };
+                                    
+                                    window.chartInstances['@chartId'] = null;
 
-                                    new Chart(ctx, {
-                                        type: 'pie',
-                                        data: {
-                                            labels: @Html.Raw(labelsJson),
-                                            datasets: [{
-                                                data: @Html.Raw(countsJson),
-                                                backgroundColor: @Html.Raw(colorsJson)
-                                            }]
-                                        },
-                                        options: {
-                                            responsive: true,
-                                            maintainAspectRatio: false,
-                                            plugins: {
-                                                legend: { display: false }
-                                            }
-                                        }
-                                    });
+                                    // Render pie chart on initial load
+                                    setTimeout(function() {
+                                        renderPieChart('@chartId');
+                                    }, 0);
                                 })();
                             </script>
                         }
@@ -248,4 +254,122 @@ else
             </div>
         }
     </div>
+
+    <script>
+        // Initialize global objects
+        window.chartInstances = window.chartInstances || {};
+        window.chartData = window.chartData || {};
+
+        // Handle chart type toggle
+        document.querySelectorAll('input[name="chartType"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const chartType = this.value;
+                document.querySelectorAll('.question-chart').forEach(canvas => {
+                    const chartId = canvas.id;
+                    
+                    // Destroy existing chart
+                    if (window.chartInstances[chartId]) {
+                        window.chartInstances[chartId].destroy();
+                        window.chartInstances[chartId] = null;
+                    }
+
+                    if (chartType === 'chart') {
+                        renderPieChart(chartId);
+                    } else {
+                        renderHistogram(chartId);
+                    }
+                });
+            });
+        });
+
+        function renderPieChart(chartId) {
+            const canvas = document.getElementById(chartId);
+            if (!canvas || !window.chartData[chartId]) return;
+
+            const data = window.chartData[chartId];
+            const ctx = canvas.getContext('2d');
+            
+            window.chartInstances[chartId] = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.counts,
+                        backgroundColor: data.colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return 'Count: ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderHistogram(chartId) {
+            const canvas = document.getElementById(chartId);
+            if (!canvas || !window.chartData[chartId]) return;
+
+            const data = window.chartData[chartId];
+            const ctx = canvas.getContext('2d');
+            
+            window.chartInstances[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Responses',
+                        data: data.counts,
+                        backgroundColor: data.colors,
+                        borderColor: data.colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed.x / total) * 100).toFixed(1);
+                                    return 'Count: ' + context.parsed.x + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { 
+                                color: '#fff',
+                                stepSize: 1
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 }

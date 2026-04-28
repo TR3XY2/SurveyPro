@@ -68,6 +68,7 @@ public class Program
         builder.Services.AddScoped<ISurveyParticipationService, SurveyParticipationService>();
         builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
         builder.Services.AddScoped<IQuestionService, QuestionService>();
+        builder.Services.AddScoped<IChartService, ChartService>();
         builder.Services.AddScoped<IAdminUserService, AdminUserService>();
         builder.Services.AddScoped<IAdminSurveyService, AdminSurveyService>();
         builder.Services.AddHttpClient<SurveyPro.Application.Interfaces.IQuoteService, SurveyPro.Infrastructure.ExternalApis.QuoteService>(client =>
