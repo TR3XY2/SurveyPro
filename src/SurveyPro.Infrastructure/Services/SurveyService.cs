@@ -65,6 +65,7 @@ public sealed class SurveyService : ISurveyService
         if (this.dbContext != null)
         {
             await this.EnsureSurveySessionAsync(survey, cancellationToken);
+            await this.QueueSurveyCreatedNotificationAsync(survey, cancellationToken);
         }
 
         logger.LogInformation(
@@ -114,6 +115,12 @@ public sealed class SurveyService : ISurveyService
         survey.Status = SurveyStatuses.Published;
 
         await this.surveyRepository.UpdateAsync(survey, cancellationToken);
+
+        if (this.dbContext != null)
+        {
+            await this.QueueSurveyPublishedNotificationsAsync(survey, cancellationToken);
+        }
+
         return Result.Success();
     }
 
@@ -201,6 +208,11 @@ public sealed class SurveyService : ISurveyService
 
         await this.surveyRepository.UpdateAsync(survey, cancellationToken);
 
+        if (this.dbContext != null)
+        {
+            await this.QueueSurveyUpdatedNotificationAsync(survey, cancellationToken);
+        }
+
         this.logger.LogInformation("Survey {SurveyId} updated by author {AuthorId}", surveyId, authorId);
 
         return Result.Success();
@@ -276,6 +288,20 @@ public sealed class SurveyService : ISurveyService
         };
 
         return Result<SurveyResponsesDto>.Success(dto);
+    }
+
+    private static string GenerateAccessCode()
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        var bytes = RandomNumberGenerator.GetBytes(8);
+
+        var characters = new char[8];
+        for (var i = 0; i < characters.Length; i++)
+        {
+            characters[i] = alphabet[bytes[i] % alphabet.Length];
+        }
+
+        return new string(characters);
     }
 
     private async Task<IReadOnlyCollection<SurveyListItemDto>> MapToListAsync(
@@ -404,6 +430,131 @@ public sealed class SurveyService : ISurveyService
         await this.dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    private async Task QueueSurveyCreatedNotificationAsync(Survey survey, CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return;
+        }
+
+        var accessCode = await this.GetAccessCodeAsync(survey.Id, cancellationToken);
+        var message = string.IsNullOrWhiteSpace(accessCode)
+            ? $"Your survey '{survey.Title}' is ready for configuration."
+            : $"Your survey '{survey.Title}' is ready for configuration. Access code: {accessCode}.";
+
+        await this.EnqueueNotificationAsync(
+            survey.AuthorId,
+            NotificationType.SurveyCreated,
+            "Survey draft created",
+            message,
+            survey.Id,
+            cancellationToken);
+    }
+
+    private async Task QueueSurveyUpdatedNotificationAsync(Survey survey, CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return;
+        }
+
+        await this.EnqueueNotificationAsync(
+            survey.AuthorId,
+            NotificationType.SurveyUpdated,
+            "Survey updated",
+            $"Your survey '{survey.Title}' was updated and the latest changes were saved.",
+            survey.Id,
+            cancellationToken);
+    }
+
+    private async Task QueueSurveyPublishedNotificationsAsync(Survey survey, CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return;
+        }
+
+        if (survey.IsPublic)
+        {
+            var recipientIds = await this.dbContext.Users
+                .AsNoTracking()
+                .Where(user => !user.IsBlocked)
+                .Select(user => user.Id)
+                .ToListAsync(cancellationToken);
+
+            await this.EnqueueNotificationsAsync(
+                recipientIds,
+                NotificationType.SurveyPublished,
+                "New public survey available",
+                $"The public survey '{survey.Title}' has just been published and is now available to participate in.",
+                survey.Id,
+                cancellationToken);
+
+            return;
+        }
+
+        await this.EnqueueNotificationAsync(
+            survey.AuthorId,
+            NotificationType.SurveyPublished,
+            "Survey published",
+            $"Your private survey '{survey.Title}' is now published and ready to share with respondents.",
+            survey.Id,
+            cancellationToken);
+    }
+
+    private async Task EnqueueNotificationsAsync(
+        IEnumerable<Guid> recipientUserIds,
+        NotificationType type,
+        string title,
+        string message,
+        Guid? relatedEntityId,
+        CancellationToken cancellationToken)
+    {
+        if (this.dbContext == null)
+        {
+            return;
+        }
+
+        var recipientIds = recipientUserIds.Distinct().ToList();
+        if (recipientIds.Count == 0)
+        {
+            return;
+        }
+
+        var notifications = recipientIds
+            .Select(recipientUserId => new Notification
+            {
+                Id = Guid.NewGuid(),
+                RecipientUserId = recipientUserId,
+                Type = type,
+                Title = title,
+                Message = message,
+                RelatedEntityId = relatedEntityId,
+                CreatedAt = DateTime.UtcNow,
+            })
+            .ToList();
+
+        await this.dbContext.Notifications.AddRangeAsync(notifications, cancellationToken);
+        await this.dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task EnqueueNotificationAsync(
+        Guid recipientUserId,
+        NotificationType type,
+        string title,
+        string message,
+        Guid? relatedEntityId,
+        CancellationToken cancellationToken)
+    {
+        await this.EnqueueNotificationsAsync(
+            new[] { recipientUserId },
+            type,
+            title,
+            message,
+            relatedEntityId,
+            cancellationToken);
+    }
+
     private async Task<string> GenerateUniqueAccessCodeAsync(CancellationToken cancellationToken)
     {
         if (this.dbContext == null)
@@ -413,7 +564,7 @@ public sealed class SurveyService : ISurveyService
 
         while (true)
         {
-            var code = this.GenerateAccessCode();
+            var code = GenerateAccessCode();
 
             var exists = await this.dbContext.SurveySessions
                 .AnyAsync(session => session.AccessCode == code, cancellationToken);
@@ -423,19 +574,5 @@ public sealed class SurveyService : ISurveyService
                 return code;
             }
         }
-    }
-
-    private string GenerateAccessCode()
-    {
-        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        var bytes = RandomNumberGenerator.GetBytes(8);
-
-        var characters = new char[8];
-        for (var i = 0; i < characters.Length; i++)
-        {
-            characters[i] = alphabet[bytes[i] % alphabet.Length];
-        }
-
-        return new string(characters);
     }
 }

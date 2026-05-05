@@ -245,6 +245,8 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
 
         await this.dbContext.SaveChangesAsync(ct);
 
+        await this.QueueSurveyResponseSubmittedNotificationAsync(session.Survey, userId, ct);
+
         this.logger.LogInformation(
             "Survey {SurveyId} submitted by user {UserId}",
             surveyId,
@@ -470,5 +472,25 @@ public sealed class SurveyParticipationService : ISurveyParticipationService
                 r.SessionParticipant.SessionId == sessionId &&
                 r.SessionParticipant.UserId == userId,
                 ct);
+    }
+
+    private async Task QueueSurveyResponseSubmittedNotificationAsync(
+        Survey survey,
+        Guid respondentUserId,
+        CancellationToken cancellationToken)
+    {
+        var notification = new Notification
+        {
+            Id = Guid.NewGuid(),
+            RecipientUserId = survey.AuthorId,
+            Type = NotificationType.SurveyResponseSubmitted,
+            Title = "New response submitted",
+            Message = $"A new response was submitted for '{survey.Title}' by user {respondentUserId}.",
+            RelatedEntityId = survey.Id,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await this.dbContext.Notifications.AddAsync(notification, cancellationToken);
+        await this.dbContext.SaveChangesAsync(cancellationToken);
     }
 }

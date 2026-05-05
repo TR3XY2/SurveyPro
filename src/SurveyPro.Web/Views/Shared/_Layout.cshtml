@@ -55,6 +55,24 @@
                     <ul class="navbar-nav">
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
+                            <li class="nav-item dropdown" id="notifications-shell" data-notifications-url="@Url.Action("Recent", "Notifications")">
+                                <button class="nav-link btn btn-link text-white position-relative dropdown-toggle"
+                                        type="button"
+                                        id="notificationsDropdown"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    Notifications
+                                    <span id="notification-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end shadow p-0" aria-labelledby="notificationsDropdown" style="min-width: 20rem;">
+                                    <div class="px-3 py-2 border-bottom small text-uppercase text-muted">Recent activity</div>
+                                    <div id="notification-menu-items" class="list-group list-group-flush"></div>
+                                </div>
+                            </li>
+                        }
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Account" asp-action="Profile">
                                     Profile
@@ -93,6 +111,8 @@
             @RenderBody()
         </main>
     </div>
+
+    <div id="notification-toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
 
     <footer class="border-top text-center py-3 mt-auto">
         <div class="container">
@@ -133,6 +153,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -4,18 +4,20 @@
 
 namespace SurveyPro.Infrastructure.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SurveyPro.Application.Common;
 using SurveyPro.Application.DTOs.Questions;
 using SurveyPro.Application.DTOs.Surveys;
 using SurveyPro.Application.Interfaces;
-using SurveyPro.Infrastructure.Persistence;
 using SurveyPro.Domain.Enums;
-using SurveyPro.Application.Common;
+using SurveyPro.Infrastructure.Persistence;
 
 /// <summary>
 /// Admin survey use-cases: view all surveys and delete any survey.
 /// </summary>
+[Authorize("Admin")]
 public sealed class AdminSurveyService : IAdminSurveyService
 {
     private readonly SurveyProDbContext dbContext;

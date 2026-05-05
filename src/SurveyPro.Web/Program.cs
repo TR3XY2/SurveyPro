@@ -15,8 +15,10 @@ using SurveyPro.Infrastructure.Interfaces;
 using SurveyPro.Infrastructure.Persistence;
 using SurveyPro.Infrastructure.Repositories;
 using SurveyPro.Infrastructure.Services;
+using SurveyPro.Web.Hubs;
 using SurveyPro.Web.Infrastructure.Middleware;
 using SurveyPro.Web.Infrastructure;
+using SurveyPro.Web.Services;
 using System.Threading.Tasks;
 
 /// <summary>
@@ -44,6 +46,8 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddSignalR();
+        builder.Services.AddHostedService<NotificationDispatcherBackgroundService>();
 
         builder.Services.AddDbContext<SurveyProDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -117,6 +121,8 @@ public class Program
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
+
+        app.MapHub<NotificationHub>("/hubs/notifications");
 
         await app.RunAsync();
     }

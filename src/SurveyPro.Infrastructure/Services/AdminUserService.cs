@@ -4,6 +4,7 @@
 
 namespace SurveyPro.Infrastructure.Services;
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -17,6 +18,7 @@ using SurveyPro.Domain.Entities;
 /// <summary>
 /// Reads admin user list and caches it in memory.
 /// </summary>
+[Authorize("Admin")]
 public sealed class AdminUserService : IAdminUserService
 {
     private const string UsersCacheKey = "admin.users.list";

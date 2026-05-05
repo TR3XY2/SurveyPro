@@ -36,6 +36,7 @@ public sealed class ChartService : IChartService
     /// <summary>
     /// Generate chart data for all questions in a survey.
     /// </summary>
+    /// <returns><see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<Result<AnswerChartsDto>> GetSurveyChartsAsync(
         Guid surveyId,
         Guid requestedByUserId,
@@ -162,6 +163,8 @@ public sealed class ChartService : IChartService
             }
         }
 
+        logger.Log(LogLevel.Information, "charts were built successfully");
+
         return Result<AnswerChartsDto>.Success(new AnswerChartsDto
         {
             SurveyId = surveyId,
@@ -175,6 +178,7 @@ public sealed class ChartService : IChartService
     /// <summary>
     /// Get histogram data for a specific question.
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task<Result<HistogramDataDto>> GetQuestionHistogramAsync(
         Guid questionId,
         Guid surveyId,

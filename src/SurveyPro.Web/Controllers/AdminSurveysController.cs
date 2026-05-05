@@ -58,6 +58,11 @@ public sealed class AdminSurveysController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
+        if (!ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var deleted = await this.adminSurveyService.DeleteSurveyAsync(id, cancellationToken);
 
         if (deleted)
@@ -82,6 +87,11 @@ public sealed class AdminSurveysController : Controller
     [HttpGet]
     public async Task<IActionResult> Questions(Guid id, CancellationToken cancellationToken)
     {
+        if (!ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var result = await this.adminSurveyService.GetSurveyQuestionsAsync(id, cancellationToken);
 
         if (result.IsFailure)
@@ -103,6 +113,11 @@ public sealed class AdminSurveysController : Controller
     [HttpGet]
     public async Task<IActionResult> Responses(Guid id, CancellationToken cancellationToken)
     {
+        if (!ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var result = await this.adminSurveyService.GetSurveyResponsesAsync(id, cancellationToken);
 
         if (result.IsFailure)
@@ -116,6 +131,11 @@ public sealed class AdminSurveysController : Controller
     [HttpPost]
     public async Task<IActionResult> DeleteResponse(Guid participantId, Guid surveyId, CancellationToken ct)
     {
+        if (!ModelState.IsValid)
+        {
+            return this.View();
+        }
+
         var result = await this.adminSurveyService.DeleteParticipantResponseAsync(participantId, ct);
 
         if (result.IsFailure)

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 /// <summary>
 /// Attribute wrapper for the custom rate limiting action filter.
 /// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
 public sealed class RateLimitAttribute : TypeFilterAttribute
 {
     /// <summary>

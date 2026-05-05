@@ -35,6 +35,8 @@ public class SurveyProDbContext : IdentityDbContext<ApplicationUser, IdentityRol
 
     public DbSet<SurveySession> SurveySessions { get; set; }
 
+    public DbSet<Notification> Notifications { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -96,5 +98,12 @@ public class SurveyProDbContext : IdentityDbContext<ApplicationUser, IdentityRol
             .HasOne(ra => ra.Question)
             .WithMany()
             .HasForeignKey(ra => ra.QuestionId);
+
+        builder.Entity<Notification>()
+            .Property(notification => notification.Type)
+            .HasConversion<string>();
+
+        builder.Entity<Notification>()
+            .HasIndex(notification => new { notification.RecipientUserId, notification.DispatchedAt, notification.CreatedAt });
     }
 }
