@@ -152,6 +152,7 @@ public class SurveyParticipationServiceTests
     [Fact]
     public async Task SaveDraftAsync_UnpublishedSurvey_ReturnsConfiguredMessage()
     {
+        // Arrange
         var dbContext = CreateDbContext();
         await SeedSessionAsync(dbContext, SurveyStatuses.Draft);
 
@@ -165,8 +166,10 @@ public class SurveyParticipationServiceTests
             Answers = new List<ParticipationAnswerDto>(),
         };
 
+        // Act
         var result = await service.SaveDraftAsync(ValidUserId, request, CancellationToken.None);
 
+        // Assert
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(SurveyNotPublishedMessage);
     }
