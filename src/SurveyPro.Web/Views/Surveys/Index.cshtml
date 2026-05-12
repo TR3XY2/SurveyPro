@@ -30,40 +30,75 @@
 }
 else
 {
-    <div class="list-group">
-        @foreach (var survey in Model)
-        {
-            <div class="list-group-item">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1">@survey.Title</h5>
-                    <small>@survey.CreatedAt.ToLocalTime().ToString("g")</small>
-                </div>
-                @if (!string.IsNullOrWhiteSpace(survey.Description))
-                {
-                    <p class="mb-1">@survey.Description</p>
-                }
-                <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
-                    <small>Статус: @survey.Status</small>
-
-                    @if (!string.IsNullOrWhiteSpace(survey.AccessCode))
-                    {
-                        <div class="d-flex gap-2">
-                            <a asp-controller="Participation" asp-action="Join" asp-route-code="@survey.AccessCode"
-                               class="btn btn-outline-primary btn-sm">
-                                Start survey
-                            </a>
-
+    <table class="table app-table table-striped app-table-surveys">
+        <thead class="app-table-header">
+            <tr>
+                <th style="color: #ffffff; font-weight: 700; background: #0a1428 !important; padding: 1rem; border: none;">Title</th>
+                <th style="color: #ffffff; font-weight: 700; background: #0a1428 !important; padding: 1rem; border: none;">Description</th>
+                <th style="color: #ffffff; font-weight: 700; background: #0a1428 !important; padding: 1rem; border: none;">Status</th>
+                <th style="color: #ffffff; font-weight: 700; background: #0a1428 !important; padding: 1rem; border: none;">Created</th>
+                <th style="color: #ffffff; font-weight: 700; background: #0a1428 !important; padding: 1rem; border: none;">Actions</th>
+            </tr>
+        </thead>
+    
+        <tbody>
+            @foreach (var survey in Model)
+            {
+                <tr>
+                    <td class="fw-semibold">
+                        @survey.Title
+                    </td>
+    
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(survey.Description))
+                        {
+                            @survey.Description
+                        }
+                        else
+                        {
+                            <span class="text-muted-soft">
+                                No description
+                            </span>
+                        }
+                    </td>
+    
+                    <td>
+                        <span class="badge text-bg-success">
+                            @survey.Status
+                        </span>
+                    </td>
+    
+                    <td>
+                        @survey.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                    </td>
+    
+                    <td>
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+    
+                            @if (!string.IsNullOrWhiteSpace(survey.AccessCode))
+                            {
+                                <a asp-controller="Participation"
+                                   asp-action="Join"
+                                   asp-route-code="@survey.AccessCode"
+                                   class="btn-app-outline btn-sm text-decoration-none">
+                                    Start survey
+                                </a>
+                            }
+    
                             @if (User.IsInRole("Admin"))
                             {
-                                <a asp-controller="Surveys" asp-action="Responses" asp-route-id="@survey.Id"
-                                   class="btn btn-outline-info btn-sm">
+                                <a asp-controller="Surveys"
+                                   asp-action="Responses"
+                                   asp-route-id="@survey.Id"
+                                   class="btn-app-outline btn-sm text-decoration-none">
                                     View responses
                                 </a>
                             }
+    
                         </div>
-                    }
-                </div>
-            </div>
-        }
-    </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
