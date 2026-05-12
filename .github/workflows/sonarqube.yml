@@ -1,14 +1,10 @@
 name: SonarQube
 on:
   push:
-    branches:
-      - main
-      - develop
+    branches: [ main, develop ]
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - main
-      - develop
+    types: [ opened, synchronize, reopened ]
+    branches: [ main, develop ]
 
 jobs:
   build:
@@ -16,7 +12,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Setup JDK (needed by Sonar scanner)
+      # Setup JDK
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -59,8 +55,15 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"TR3XY2_SurveyPro" /o:"localboard" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.qualitygate.wait=true /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" /d:sonar.coverage.exclusions="**Tests/**"
-      # Restore, build, test (inside scanner context)
+          & "${{ runner.temp }}\scanner\dotnet-sonarscanner" begin `
+            /k:"TR3XY2_SurveyPro" `
+            /o:"localboard" `
+            /d:sonar.token=$env:SONAR_TOKEN `
+            /d:sonar.qualitygate.wait=true `
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
+            /d:sonar.coverage.exclusions="**Tests/**" `
+            /d:sonar.github.pullRequest=${{ github.event.pull_request.number }}
+      # Restore, build, test
       - name: Restore dependencies
         run: dotnet restore SurveyPro.sln
 
@@ -68,7 +71,7 @@ jobs:
         run: dotnet build SurveyPro.sln --no-restore --configuration Release
 
       - name: Run tests
-        run: dotnet test SurveyPro.sln --no-build --configuration Release --collect:"XPlat Code Coverage"
+        run: dotnet test SurveyPro.sln --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./TestResults
 
       # SonarQube end
       - name: SonarQube end
@@ -76,4 +79,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          & "${{ runner.temp }}\scanner\dotnet-sonarscanner" end `
+            /d:sonar.token=$env:SONAR_TOKEN `
+            /d:sonar.qualitygate.wait=true
