@@ -1,8 +1,11 @@
-name: SonarCloud Analysis
 on:
+  push:
+    branches:
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 
+name: Sonar Workflow
 jobs:
   build:
     name: Build and analyze
@@ -51,7 +54,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: pwsh
         run: |
-          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"TR3XY2_SurveyPro" /o:"localboard" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"TR3XY2_SurveyPro" /o:"localboard" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="src/SurveyPro.Tests/TestResults/coverage.opencover.xml" /d:sonar.coverage.exclusions="**/Migrations/**,**/wwwroot/**"
 
       - name: Restore and Build
         run: |
