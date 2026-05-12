@@ -30,7 +30,7 @@ public sealed class AdminUserListItemDto
     public IReadOnlyCollection<string> Roles { get; set; } = Array.Empty<string>();
 
     /// <summary>
-    /// Gets or sets value indicating whether user is blocked.
+    /// Gets or sets a value indicating whether gets or sets value indicating whether user is blocked.
     /// </summary>
     public bool IsBlocked { get; set; }
 

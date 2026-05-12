@@ -20,6 +20,7 @@ using SurveyPro.Web.Infrastructure.Middleware;
 using SurveyPro.Web.Infrastructure;
 using SurveyPro.Web.Services;
 using System.Threading.Tasks;
+using Azure.Identity;
 
 /// <summary>
 /// Represents the main entry point for the SurveyPro web application.
@@ -30,7 +31,14 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Configuration.AddUserSecrets<Program>();
+        var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+
+        if (!string.IsNullOrEmpty(keyVaultUri))
+        {
+            builder.Configuration.AddAzureKeyVault(
+                new Uri(keyVaultUri),
+                new DefaultAzureCredential());
+        }
 
         // ������������ Serilog
         Log.Logger = new LoggerConfiguration()
