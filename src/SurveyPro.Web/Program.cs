@@ -32,7 +32,7 @@ public class Program
 
         builder.Configuration.AddUserSecrets<Program>();
 
-        // ������������ Serilog
+        // Serilog
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "SurveyPro")
@@ -104,7 +104,7 @@ public class Program
             await RoleSeeder.SeedRolesAsync(roleManager);
         }
 
-        // ��������� HTTP ������
+        // Http request logging with Serilog
         app.UseSerilogRequestLogging();
 
         // Configure the HTTP request pipeline.

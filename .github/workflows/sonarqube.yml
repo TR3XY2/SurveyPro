@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-b  b, 9 9      - develop
+      - develop
   pull_request:
     types: [opened, synchronize, reopened]
     branches:

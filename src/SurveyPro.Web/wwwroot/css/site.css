@@ -243,28 +243,22 @@ body {
 }
 
 .btn-app-outline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 0.45rem 0.9rem;
-
-    border-radius: 0.7rem;
-    border: 1px solid #42d4ff;
-
-    background: transparent;
-    color: #8ee9ff;
-
-    font-weight: 500;
-    font-size: 0.9rem;
-
-    transition: all 0.15s ease;
-
-    text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.7rem;
+  border: 1px solid #42d4ff;
+  background: transparent;
+  color: #8ee9ff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+  text-decoration: none;
 }
 
 .btn-app-outline:hover {
-    background: rgba(66, 212, 255, 0.12);
-    color: white;
-    border-color: #6fe3ff;
+  background: rgba(66, 212, 255, 0.12);
+  color: white;
+  border-color: #6fe3ff;
 }
