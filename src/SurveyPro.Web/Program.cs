@@ -40,7 +40,6 @@ public class Program
                 new DefaultAzureCredential());
         }
 
-        // ������������ Serilog
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "SurveyPro")
